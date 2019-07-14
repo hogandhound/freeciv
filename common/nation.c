@@ -108,7 +108,7 @@ struct nation_type *nation_by_translated_plural(const char *name)
     if (0 == strcmp(nation_plural_translation(pnation), name)) {
       return pnation;
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   return NO_NATION_SELECTED;
 }
@@ -125,7 +125,7 @@ struct nation_type *nation_by_rule_name(const char *name)
     if (0 == fc_strcasecmp(nation_rule_name(pnation), qname)) {
       return pnation;
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   return NO_NATION_SELECTED;
 }
@@ -769,7 +769,7 @@ struct nation_set *nation_set_by_rule_name(const char *name)
     if (0 == fc_strcasecmp(rule_name_get(&pset->name), qname)) {
       return pset;
     }
-  } nation_sets_iterate_end;
+  } nation_sets_iterate_end(pset);
 
   return NULL;
 }
@@ -1000,7 +1000,7 @@ struct nation_group *nation_group_by_rule_name(const char *name)
     if (0 == fc_strcasecmp(rule_name_get(&pgroup->name), qname)) {
       return pgroup;
     }
-  } nation_groups_iterate_end;
+  } nation_groups_iterate_end(pgroup);
 
   return NULL;
 }

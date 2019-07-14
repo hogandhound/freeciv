@@ -18,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <freeciv_config.h>
+#include <freeciv_config.h.in>
 
 #ifdef FREECIV_HAVE_DIRENT_H
 #include <dirent.h>

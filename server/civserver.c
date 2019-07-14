@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
 #ifndef FREECIV_NDEBUG
     } else if (is_option("--Fatal", argv[inx])) {
       if (inx + 1 >= argc || '-' == argv[inx + 1][0]) {
-        srvarg.fatal_assertions = SIGABRT;
+          srvarg.fatal_assertions = -1;// SIGABRT;
       } else if (str_to_int(argv[inx + 1], &srvarg.fatal_assertions)) {
         inx++;
       } else {
@@ -298,12 +298,12 @@ int main(int argc, char *argv[])
     } else if (is_option("--version", argv[inx])) {
       showvers = TRUE;
     } else if ((option = get_option_malloc("--Announce", argv, &inx, argc, FALSE))) {
-      if (!strcasecmp(option, "ipv4")) {
+      if (!fc_strcasecmp(option, "ipv4")) {
         srvarg.announce = ANNOUNCE_IPV4;
-      } else if (!strcasecmp(option, "none")) {
+      } else if (!fc_strcasecmp(option, "none")) {
         srvarg.announce = ANNOUNCE_NONE;
 #ifdef FREECIV_IPV6_SUPPORT
-      } else if (!strcasecmp(option, "ipv6")) {
+      } else if (!fc_strcasecmp(option, "ipv6")) {
         srvarg.announce = ANNOUNCE_IPV6;
 #endif /* IPv6 support */
       } else {

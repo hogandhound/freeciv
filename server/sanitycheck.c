@@ -572,7 +572,7 @@ static void check_players(const char *file, const char *function, int line)
 
   nations_iterate(pnation) {
     SANITY_CHECK(!pnation->player || pnation->player->nation == pnation);
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   teams_iterate(pteam) {
     player_list_iterate(team_members(pteam), pplayer) {

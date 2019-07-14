@@ -215,7 +215,7 @@ static int try_to_connect(const char *username, char *errbuf, int errbufsize)
     }
 
     if (fc_connect(sock, &paddr->saddr,
-                   sockaddr_size(paddr)) == -1) {
+        fc_sockaddr_size(paddr)) == -1) {
       err = fc_get_errno(); /* Save errno value before calling anything */
       fc_closesocket(sock);
       sock = -1;

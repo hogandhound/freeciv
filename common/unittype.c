@@ -1099,7 +1099,8 @@ bool role_units_translations(struct astring *astr, int flag, bool alts)
     }
     return TRUE;
   } else if (0 < count) {
-    const char *vec[count];
+    //const char *vec[count];
+	const char **vec= hh_malloc(count * sizeof(char*));
     int i;
 
     for (i = 0; i < count; i++) {
@@ -1111,6 +1112,7 @@ bool role_units_translations(struct astring *astr, int flag, bool alts)
     } else {
       astr_build_and_list(astr, vec, count);
     }
+	free(vec);
     return TRUE;
   }
   return FALSE;

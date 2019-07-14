@@ -67,9 +67,9 @@ void fit_nationset_to_players(void);
   nations_iterate(pnation) {                                        \
     if (nation_is_in_current_set(pnation)) {
 
-#define allowed_nations_iterate_end                                 \
+#define allowed_nations_iterate_end(pnation)                                 \
     }                                                               \
-  } nations_iterate_end
+  } nations_iterate_end(pnation)
 
 void check_player_max_rates(struct player *pplayer);
 void make_contact(struct player *pplayer1, struct player *pplayer2,

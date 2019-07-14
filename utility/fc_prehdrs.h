@@ -18,7 +18,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* gen_headers */
-#include "freeciv_config.h"
+#include "freeciv_config.h.in"
 
 /* If winsock stuff is to be included, it must be included
  * before <windows.h> and sometimes before any msys2 provided standard

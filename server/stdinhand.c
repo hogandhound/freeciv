@@ -1155,7 +1155,9 @@ static bool read_init_script_real(struct connection *caller,
 {
   FILE *script_file;
   const char extension[] = ".serv";
-  char serv_filename[strlen(extension) + strlen(script_filename) + 2];
+  //char serv_filename[strlen(extension) + strlen(script_filename) + 2];
+  char *serv_filename = 0;
+  size_t servFilenameLen = 0;
   char tilde_filename[4096];
   const char *real_filename;
 
@@ -1165,14 +1167,17 @@ static bool read_init_script_real(struct connection *caller,
     return FALSE;
   }
 
+  servFilenameLen = strlen(extension) + strlen(script_filename) + 2;
+  serv_filename = hh_malloc(servFilenameLen);
+
   /* abuse real_filename to find if we already have a .serv extension */
   real_filename = script_filename + strlen(script_filename) 
                   - MIN(strlen(extension), strlen(script_filename));
   if (strcmp(real_filename, extension) != 0) {
-    fc_snprintf(serv_filename, sizeof(serv_filename), "%s%s", 
+    fc_snprintf(serv_filename, servFilenameLen, "%s%s",
                 script_filename, extension);
   } else {
-    sz_strlcpy(serv_filename, script_filename);
+    fc_strlcpy(serv_filename, script_filename, servFilenameLen);
   }
 
   if (is_restricted(caller) && !from_cmdline) {
@@ -1180,6 +1185,7 @@ static bool read_init_script_real(struct connection *caller,
       cmd_reply(CMD_READ_SCRIPT, caller, C_FAIL,
                 _("Name \"%s\" disallowed for security reasons."),
                 serv_filename);
+      free(serv_filename);
       return FALSE;
     }
     sz_strlcpy(tilde_filename, serv_filename);
@@ -1193,11 +1199,13 @@ static bool read_init_script_real(struct connection *caller,
       cmd_reply(CMD_READ_SCRIPT, caller, C_FAIL,
                 _("No command script found by the name \"%s\"."), 
                 serv_filename);
+      free(serv_filename);
       return FALSE;
     }
     /* File is outside data directories */
     real_filename = tilde_filename;
   }
+  free(serv_filename);
 
   log_testmatic_alt(LOG_NORMAL, _("Loading script file '%s'."), real_filename);
 
@@ -6036,7 +6044,8 @@ static bool kick_command(struct connection *caller, char *name, bool check)
   }
 
   if (NULL != caller && ALLOW_ADMIN > conn_get_access(caller)) {
-    const int MIN_UNIQUE_CONNS = 3;
+    //const int MIN_UNIQUE_CONNS = 3;
+#define MIN_UNIQUE_CONNS 3
     const char *unique_ipaddr[MIN_UNIQUE_CONNS];
     int i, num_unique_connections = 0;
 
@@ -6579,7 +6588,7 @@ static void show_nationsets(struct connection *caller)
       if (is_nation_playable(pnation) && nation_is_in_set(pnation, pset)) {
         num_nations++;
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
     cmd_reply(CMD_LIST, caller, C_COMMENT,
               /* TRANS: nation set description; %d refers to number of playable
                * nations in set */
@@ -6594,7 +6603,7 @@ static void show_nationsets(struct connection *caller)
       cmd_reply_prefix(CMD_LIST, caller, C_COMMENT, prefix, "%s%s",
                        prefix, translated);
     }
-  } nation_sets_iterate_end;
+  } nation_sets_iterate_end(pset);
 
   cmd_reply(CMD_LIST, caller, C_COMMENT, horiz_line);
 }

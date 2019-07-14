@@ -132,7 +132,8 @@ static void arrange_widgets(struct widget *window, int widgets_per_row,
   struct widget *widget;
   SDL_Surface *logo;
   SDL_Rect area;
-  int longest[widgets_per_row], xpos[widgets_per_row];
+  //int longest[widgets_per_row], xpos[widgets_per_row];
+  int *longest = hh_malloc(sizeof(int)*widgets_per_row), *xpos = hh_malloc(sizeof(int)*widgets_per_row);
   int w, h, i, j;
   va_list args;
 
@@ -142,7 +143,7 @@ static void arrange_widgets(struct widget *window, int widgets_per_row,
   fc_assert_ret(0 < widgets_per_row);
 
   /* Get window dimensions. */
-  memset(longest, 0, sizeof(longest));
+  memset(longest, 0, sizeof(int)*widgets_per_row);
   for (widget = begin, i = 0; widget != end; widget = widget->next, i++) {
     j = i % widgets_per_row;
     longest[j] = MAX(longest[j], widget->size.w);
@@ -219,6 +220,9 @@ static void arrange_widgets(struct widget *window, int widgets_per_row,
   redraw_group(begin, window, 0);
   widget_mark_dirty(window);
   flush_all();
+
+  free(xpos);
+  free(longest);
 }
 
 /************************************************************************//**

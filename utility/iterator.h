@@ -64,23 +64,23 @@ static inline bool iterator_valid(const struct iterator *it) {
 
   TYPE_it - The type of the derived iterator. E.g. 'struct foo_iter'.
   TYPE_a - The real type of the items in the list. The variable with name
-           'NAME_a' will be cast to this.
+		   'NAME_a' will be cast to this.
   NAME_a - The name of the variable that will be assigned the current item
-           in each iteration. It will be declared for you within the scope
-           of the iteration loop.
+		   in each iteration. It will be declared for you within the scope
+		   of the iteration loop.
   FUNC_size - A function that returns the total size in bytes of a
-              'TYPE_it'.
+			  'TYPE_it'.
   FUNC_init - A "construtor" for 'TYPE_it' objects. It returns a pointer to
-              a 'struct iterator' and takes as its first argument a pointer
-              to memory large enough to hold a 'TYPE_it' (this amount must
-              match the result of FUNC_size()). NB: This function must not
-              return NULL; it must return a valid iterator pointing to the
-              first element in the sequence, or an invalid iterator.
+			  a 'struct iterator' and takes as its first argument a pointer
+			  to memory large enough to hold a 'TYPE_it' (this amount must
+			  match the result of FUNC_size()). NB: This function must not
+			  return NULL; it must return a valid iterator pointing to the
+			  first element in the sequence, or an invalid iterator.
   ... - Zero or more extra arguments that 'FUNC_init' expects.
 ***************************************************************************/
 #define generic_iterate(TYPE_it, TYPE_a, NAME_a, FUNC_size, FUNC_init, ...)\
 do {\
-  char MY_mem_##NAME_a[FUNC_size()];\
+  char *MY_mem_##NAME_a=(char*)hh_malloc(FUNC_size());\
   struct iterator *MY_it_##NAME_a;\
   TYPE_a NAME_a;\
   MY_it_##NAME_a =\
@@ -88,8 +88,18 @@ do {\
   for (; iterator_valid(MY_it_##NAME_a); iterator_next(MY_it_##NAME_a)) {\
     NAME_a = (TYPE_a) iterator_get(MY_it_##NAME_a);\
 
-#define generic_iterate_end\
-  }\
+//do { \
+//		char MY_mem_##NAME_a[FUNC_size()]; \
+//  struct iterator *MY_it_##NAME_a;\
+//  TYPE_a NAME_a;\
+//  MY_it_##NAME_a =\
+//    FUNC_init((TYPE_it *) (void *) MY_mem_##NAME_a , ## __VA_ARGS__);\
+//  for (; iterator_valid(MY_it_##NAME_a); iterator_next(MY_it_##NAME_a)) {\
+//    NAME_a = (TYPE_a) iterator_get(MY_it_##NAME_a);\
+
+#define generic_iterate_end(NAME_a)\
+  } \
+  free(MY_mem_##NAME_a); \
 } while (FALSE)
 
 /***************************************************************************

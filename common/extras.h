@@ -23,6 +23,8 @@ extern "C" {
 #include "road.h"
 #include "terrain.h"
 
+#include "stdint.h"
+
 /* Used in the network protocol. */
 #define SPECENUM_NAME extra_flag_id
 /* Tile with this extra is considered native for units in tile. */

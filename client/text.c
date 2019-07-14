@@ -235,7 +235,8 @@ const char *popup_info_text(struct tile *ptile)
     /* Look at city owner, not tile owner (the two should be the same, if
      * borders are in use). */
     struct player *owner = city_owner(pcity);
-    const char *improvements[improvement_count()];
+    //const char *improvements[improvement_count()];
+	const char **improvements = hh_malloc(sizeof(char*)*improvement_count());
     int has_improvements = 0;
 
     get_full_username(username, sizeof(username), owner);
@@ -306,6 +307,7 @@ const char *popup_info_text(struct tile *ptile)
       astr_add_line(&str, _("   with %s."), astr_str(&list));
       astr_free(&list);
     }
+	free(improvements);
 
     unit_list_iterate(get_units_in_focus(), pfocus_unit) {
       struct city *hcity = game_city_by_number(pfocus_unit->homecity);
@@ -678,7 +680,7 @@ static int get_bulbs_per_turn(int *pours, bool *pteam, int *ptheirs)
       team = TRUE;
       theirs -= pplayer->client.tech_upkeep;
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
 
   if (team) {
     theirs += presearch->client.total_bulbs_prod - ours;

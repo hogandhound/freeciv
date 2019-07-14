@@ -127,11 +127,12 @@ do {                                                        \
   } trade_route_list_iterate_end;                           \
 } while (FALSE)
 
+//struct trade_route *_routes##_saved[_routes##_size];
 #define trade_routes_iterate_safe(c, proute)                \
 {                                                           \
   int _routes##_size = trade_route_list_size(c->routes);    \
   if (_routes##_size > 0) {                                 \
-    struct trade_route *_routes##_saved[_routes##_size];    \
+    struct trade_route **_routes##_saved = hh_calloc(_routes##_size, sizeof(struct trade_route*));    \
     int _routes##_index = 0;                                \
     trade_routes_iterate(c, _proute) {                      \
       _routes##_saved[_routes##_index++] = _proute;         \
@@ -141,8 +142,9 @@ do {                                                        \
          _routes##_index++) {                               \
       struct trade_route *proute = _routes##_saved[_routes##_index];
 
-#define trade_routes_iterate_safe_end                       \
+#define trade_routes_iterate_safe_end(proute)                       \
     }                                                       \
+    free(_routes##_saved); \
   }                                                         \
 }
 

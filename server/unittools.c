@@ -557,7 +557,7 @@ void player_restore_units(struct player *pplayer)
 	punit->fuel = utype_fuel(unit_type_get(punit));
       }
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   /* 7) Check if there are air units without fuel */
   unit_list_iterate_safe(pplayer->units, punit) {
@@ -567,7 +567,7 @@ void player_restore_units(struct player *pplayer)
                     unit_tile_link(punit));
       wipe_unit(punit, ULR_FUEL, NULL);
     } 
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   /* Send all updates. */
   unit_list_iterate(pplayer->units, punit) {
@@ -649,7 +649,7 @@ void update_unit_activities(struct player *pplayer)
 {
   unit_list_iterate_safe(pplayer->units, punit) {
     update_unit_activity(punit);
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**
@@ -661,7 +661,7 @@ void execute_unit_orders(struct player *pplayer)
     if (unit_has_orders(punit)) {
       execute_orders(punit, FALSE);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**
@@ -1219,11 +1219,14 @@ void bounce_unit(struct unit *punit, bool verbose)
   /* I assume that there are no topologies that have more than
    * (2d + 1)^2 tiles in the "square" of "radius" d. */
   const int DIST = 2;
-  struct tile *tiles[(2 * DIST + 1) * (2 * DIST + 1)];
+  //struct tile *tiles[(2 * DIST + 1) * (2 * DIST + 1)];
+  struct tile **tiles = 0;
 
   if (!punit) {
     return;
   }
+
+  tiles = calloc((2 * DIST + 1) * (2 * DIST + 1), sizeof(struct tile*));
 
   pplayer = unit_owner(punit);
   punit_tile = unit_tile(punit);
@@ -1254,8 +1257,10 @@ void bounce_unit(struct unit *punit, bool verbose)
                     unit_link(punit));
     }
     unit_move(punit, ptile, 0, NULL, FALSE);
+    free(tiles);
     return;
   }
+  free(tiles);
 
   /* Didn't find a place to bounce the unit, going to disband it.
    * Try to bounce transported units. */
@@ -1319,7 +1324,7 @@ static void throw_units_from_illegal_cities(struct player *pplayer,
         bounce_unit(punit, verbose);
       }
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
 #ifdef FREECIV_DEBUG
   /* Sanity check. */
@@ -1359,9 +1364,9 @@ static void resolve_stack_conflicts(struct player *pplayer,
             || !can_unit_survive_at_tile(&(wld.map), aunit, ptile)) {
           bounce_unit(aunit, verbose);
         }
-      } unit_list_iterate_safe_end;
+      } unit_list_iterate_safe_end(aunit);
     }    
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 				
 /**********************************************************************//**
@@ -1917,7 +1922,7 @@ static void wipe_unit_full(struct unit *punit, bool transported,
       if (healthy) {
         send_unit_info(NULL, pcargo);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
   }
 
   /* Now remove the unit. */
@@ -1977,14 +1982,14 @@ static void wipe_unit_full(struct unit *punit, bool transported,
       } else {
         unit_list_prepend(remaining, pcargo);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
 
     /* Handle non-priority units. */
     unit_list_iterate_safe(remaining, pcargo) {
       if (!try_to_save_unit(pcargo, putype_save, TRUE, FALSE, pexclcity)) {
         unit_list_prepend(unsaved, pcargo);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
 
     unit_list_destroy(remaining);
   }
@@ -2008,14 +2013,14 @@ static void wipe_unit_full(struct unit *punit, bool transported,
       } else {
         unit_list_prepend(remaining, pcargo);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
 
     /* Handle non-priority units. */
     unit_list_iterate_safe(remaining, pcargo) {
       if (!try_to_save_unit(pcargo, putype_save, FALSE, FALSE, pexclcity)) {
         unit_list_prepend(unsaved, pcargo);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
 
     unit_list_destroy(remaining);
   }
@@ -2025,7 +2030,7 @@ static void wipe_unit_full(struct unit *punit, bool transported,
   if (unit_list_size(unsaved) > 0) {
     unit_list_iterate_safe(unsaved, dying_unit) {
       unit_lost_with_transport(pplayer, dying_unit, putype_save, killer);
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(dying_unit);
   }
   unit_list_destroy(unsaved);
 }
@@ -2221,7 +2226,7 @@ void kill_unit(struct unit *pkiller, struct unit *punit, bool vet)
           if (conqsize <= 0) {
             break;
           }
-        } city_list_iterate_safe_end;
+        } city_list_iterate_safe_end(pcity);
         game.server.savepalace = palace;
       }
     }
@@ -2273,9 +2278,12 @@ void kill_unit(struct unit *pkiller, struct unit *punit, bool vet)
     wipe_unit(punit, ULR_KILLED, pvictor);
   } else { /* unitcount > 1 */
     int i;
-    int num_killed[player_slot_count()];
-    int num_escaped[player_slot_count()];
-    struct unit *other_killed[player_slot_count()];
+    //int num_killed[player_slot_count()];
+    //int num_escaped[player_slot_count()];
+    //struct unit *other_killed[player_slot_count()];
+    int *num_killed = hh_calloc(player_slot_count(), sizeof(int));
+    int *num_escaped = hh_calloc(player_slot_count(), sizeof(int));
+    struct unit **other_killed = hh_calloc(player_slot_count(), sizeof(struct unit**));
     struct tile *ptile = unit_tile(punit);
 
     fc_assert(unitcount > 1);
@@ -2460,7 +2468,11 @@ void kill_unit(struct unit *pkiller, struct unit *punit, bool vet)
 	  && is_unit_reachable_at(punit2, pkiller, ptile)) {
         wipe_unit(punit2, ULR_KILLED, pvictor);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit2);
+
+    free(num_killed);
+    free(num_escaped);
+    free(other_killed);
   }
 }
 
@@ -2709,7 +2721,7 @@ static void do_nuke_tile(struct player *pplayer, struct tile *ptile)
                     unit_tile_link(punit));
     }
     wipe_unit(punit, ULR_NUKE, pplayer);
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
 
   if (pcity) {
@@ -3708,7 +3720,7 @@ bool unit_move(struct unit *punit, struct tile *pdesttile, int move_cost,
   unit_cargo_iterate(punit, pcargo) {
     pdata = unit_move_data(pcargo, psrctile, pdesttile);
     unit_move_data_list_append(plist, pdata);
-  } unit_cargo_iterate_end;
+  } unit_cargo_iterate_end(pcargo);
 
   /* Get data for 'punit'. */
   pdata = unit_move_data_list_front(plist);

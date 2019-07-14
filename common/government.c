@@ -42,7 +42,7 @@ struct government *government_by_translated_name(const char *name)
     if (0 == strcmp(government_name_translation(gov), name)) {
       return gov;
     }
-  } governments_iterate_end;
+  } governments_iterate_end(gov);
 
   return NULL;
 }
@@ -59,7 +59,7 @@ struct government *government_by_rule_name(const char *name)
     if (0 == fc_strcasecmp(government_rule_name(gov), qname)) {
       return gov;
     }
-  } governments_iterate_end;
+  } governments_iterate_end(gov);
 
   return NULL;
 }

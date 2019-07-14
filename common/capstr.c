@@ -18,7 +18,7 @@
 #include <stdlib.h>             /* getenv() */
 
 /* gen_headers */
-#include "version_gen.h"
+//#include "version_gen.h"
 
 /* utility */
 #include "support.h"

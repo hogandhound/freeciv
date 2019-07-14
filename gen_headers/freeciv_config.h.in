@@ -39,7 +39,7 @@
 #undef FREECIV_HAVE_WINTHREADS
 
 /* Use tinycthread as thread implementation */
-#undef FREECIV_HAVE_TINYCTHR
+//#undef FREECIV_HAVE_TINYCTHR
 
 /* Has thread condition variable implementation */
 #undef FREECIV_HAVE_THREAD_COND
@@ -63,7 +63,7 @@
 #undef FREECIV_HAVE_STDINT_H
 
 /* ws2tcpip.h available */
-#undef FREECIV_HAVE_WS2TCPIP_H
+//#undef FREECIV_HAVE_WS2TCPIP_H
 
 /* sys/types.h available */
 #undef FREECIV_HAVE_SYS_TYPES_H
@@ -84,7 +84,7 @@
 #undef FREECIV_HAVE_NETINET_IN_H
 
 /* dirent.h available */
-#undef FREECIV_HAVE_DIRENT_H
+//#undef FREECIV_HAVE_DIRENT_H
 
 /* Have standard compliant stdbool.h */
 #undef FREECIV_HAVE_STDBOOL_H
@@ -102,13 +102,13 @@
 #undef FREECIV_DELTA_PROTOCOL
 
 /* Windows build */
-#undef FREECIV_MSWINDOWS
+//#undef FREECIV_MSWINDOWS
 
 /* uses some winsock version */
-#undef FREECIV_HAVE_WINSOCK
+//#undef FREECIV_HAVE_WINSOCK
 
 /* uses winsock2 */
-#undef FREECIV_HAVE_WINSOCK2
+//#undef FREECIV_HAVE_WINSOCK2
 
 /* socket zero isn't same stdin */
 #undef FREECIV_SOCKET_ZERO_NOT_STDIN
@@ -120,7 +120,7 @@
 #undef FREECIV_NDEBUG
 
 /* zlib is available */
-#undef FREECIV_HAVE_LIBZ
+//#undef FREECIV_HAVE_LIBZ
 
 /* libbzip2 is available */
 #undef FREECIV_HAVE_LIBBZ2
@@ -129,13 +129,13 @@
 #undef FREECIV_HAVE_LIBLZMA
 
 /* Location for freeciv to store its information */
-#undef FREECIV_STORAGE_DIR
+//#undef FREECIV_STORAGE_DIR
 
 /* IPv6 Support built in */
 #undef FREECIV_IPV6_SUPPORT
 
 /* Max number of AI modules */
-#undef FREECIV_AI_MOD_LAST
+//#undef FREECIV_AI_MOD_LAST
 
 /* C11 static assert supported */
 #undef FREECIV_C11_STATIC_ASSERT

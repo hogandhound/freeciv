@@ -493,12 +493,13 @@ extern struct output_type output_types[];
   } players_iterate_end;                                                    \
 }
 
+//int _city##_numbers[_city##_size];                                 
 #define city_list_iterate_safe(citylist, _city)                        \
 {                                                                      \
   int _city##_size = city_list_size(citylist);                         \
                                                                        \
   if (_city##_size > 0) {                                              \
-    int _city##_numbers[_city##_size];                                 \
+    int *_city##_numbers = malloc(_city##_size * sizeof(int));                                 \
     int _city##_index = 0;                                             \
                                                                        \
     city_list_iterate(citylist, _city) {                               \
@@ -513,9 +514,10 @@ extern struct output_type output_types[];
                                                                        \
       if (NULL != _city) {
 
-#define city_list_iterate_safe_end                                     \
+#define city_list_iterate_safe_end(_city)                                   \
       }                                                                \
     }                                                                  \
+    free(_city##_numbers); \
   }                                                                    \
 }
 

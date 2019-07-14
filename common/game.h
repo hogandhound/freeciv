@@ -78,6 +78,17 @@ struct user_flag
  * player for that user to be ranked as that player */
 #define TURNS_NEEDED_TO_RANK 10
 
+//struct packet_calendar_info
+//{
+//    bool calendar_skip_0;
+//    int calendar_fragments;
+//    int fragment_count;
+//    char calendar_fragment_name[MAX_CALENDAR_FRAGMENTS][MAX_LEN_NAME];
+//
+//    char negative_year_label[MAX_LEN_NAME];
+//    char positive_year_label[MAX_LEN_NAME];
+//};
+
 struct civ_game {
   struct packet_ruleset_control control;
   char *ruleset_summary;

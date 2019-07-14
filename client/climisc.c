@@ -1287,7 +1287,9 @@ void buy_production_in_selected_cities(void)
   }
 
   const int n = city_list_size(pplayer->cities);
-  struct city *cities[n];
+  //struct city *cities[n];
+  size_t cityLen = n * sizeof(struct city*);
+  struct city **cities = hh_malloc(cityLen);
   int i, count = 0;
 
   city_list_iterate(pplayer->cities, pcity) {
@@ -1298,10 +1300,11 @@ void buy_production_in_selected_cities(void)
   } city_list_iterate_end;
 
   if (count < 1) {
+    free(cities);
     return;
   }
 
-  qsort(cities, count, sizeof(*cities), city_buy_cost_compare);
+  qsort(cities, count, cityLen, city_buy_cost_compare);
 
   pconn = &client.conn;
   connection_do_buffer(pconn);
@@ -1312,6 +1315,7 @@ void buy_production_in_selected_cities(void)
   }
 
   connection_do_unbuffer(pconn);
+  free(cities);
 }
 
 /**********************************************************************//**

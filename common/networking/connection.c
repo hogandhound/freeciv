@@ -867,7 +867,8 @@ struct conn_pattern *conn_pattern_from_string(const char *pattern,
   if ((p = strchr(pattern, '='))) {
     /* Special character to separate the type of the pattern. */
     const size_t pattern_type_len = ++p - pattern;
-    char pattern_type[pattern_type_len];
+    //char pattern_type[pattern_type_len];
+    char *pattern_type = hh_malloc(pattern_type_len);
 
     fc_strlcpy(pattern_type, pattern, pattern_type_len);
     remove_leading_trailing_spaces(pattern_type);
@@ -878,8 +879,10 @@ struct conn_pattern *conn_pattern_from_string(const char *pattern,
                     _("\"%s\" is not a valid pattern type"),
                     pattern_type);
       }
+      free(pattern_type);
       return NULL;
     }
+    free(pattern_type);
   } else {
     /* Use 'prefer' type. */
     p = pattern;

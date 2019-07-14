@@ -216,7 +216,7 @@ static void node_rectangle_minimum_size(struct tree_node *node,
             icons_width_sum += swidth + 2;	    
 	  }
         } requirement_vector_iterate_end;
-      } governments_iterate_end;
+      } governments_iterate_end(gov);
     }
     
     *height += max_icon_height;
@@ -391,7 +391,8 @@ static struct reqtree *create_dummy_reqtree(struct player *pplayer,
   const struct research *presearch = research_get(pplayer);
   struct reqtree *tree = fc_malloc(sizeof(*tree));
   int j;
-  struct tree_node *nodes[advance_count()];
+  //struct tree_node *nodes[advance_count()];
+  struct tree_node **nodes = hh_malloc(sizeof(struct tree_node *)*advance_count());
 
   nodes[A_NONE] = NULL;
   advance_index_iterate(A_FIRST, tech) {
@@ -645,7 +646,8 @@ static void set_layers(struct reqtree *tree)
 
   {
     /* Counters for order - order number for the next node in the layer */
-    int T[num_layers];
+    //int T[num_layers];
+	int *T = hh_malloc(sizeof(int)*num_layers);
 
     tree->layers = fc_malloc(sizeof(*tree->layers) * num_layers);
     tree->layer_size = fc_malloc(sizeof(*tree->layer_size) * num_layers);
@@ -668,6 +670,7 @@ static void set_layers(struct reqtree *tree)
       node->order = T[node->layer];
       T[node->layer]++;
     }
+	free(T);
   }
 }
 
@@ -698,7 +701,9 @@ static int cmp_func(const void *_a, const void *_b)
 *************************************************************************/
 static void barycentric_sort(struct reqtree *tree, int layer)
 {
-  struct node_and_float T[tree->layer_size[layer]];
+  //struct node_and_float T[tree->layer_size[layer]];
+  size_t tSize = sizeof(struct node_and_float *)*tree->layer_size[layer];
+  struct node_and_float *T = hh_malloc(tSize);
   int i, j;
   float v;
 
@@ -715,13 +720,14 @@ static void barycentric_sort(struct reqtree *tree, int layer)
     }
     T[i].value = v;
   }
-  qsort(T, tree->layer_size[layer], sizeof(*T),
+  qsort(T, tree->layer_size[layer], sizeof(struct node_and_float),
 	cmp_func);
 
   for (i = 0; i < tree->layer_size[layer]; i++) {
     tree->layers[layer][i] = T[i].node;
     T[i].node->order = i;
   }
+  free(T);
 }
 
 /*********************************************************************//**
@@ -731,7 +737,8 @@ static int count_crossings(struct reqtree *tree, int layer)
 {
   int layer1_size = tree->layer_size[layer];
   int layer2_size = tree->layer_size[layer + 1];
-  int X[layer2_size];
+  //int X[layer2_size];
+  int *X = hh_malloc(sizeof(int)*layer2_size);
   int i, j, k;
   int sum = 0;
 
@@ -751,7 +758,7 @@ static int count_crossings(struct reqtree *tree, int layer)
       }
     }
   }
-
+  free(X);
   return sum;
 }
 
@@ -775,7 +782,8 @@ static void swap(struct reqtree *tree, int layer, int order1, int order2)
 *************************************************************************/
 static void improve(struct reqtree *tree)
 {
-  int crossings[tree->num_layers - 1];
+  //int crossings[tree->num_layers - 1];
+  int *crossings=hh_malloc(sizeof(int) * tree->num_layers - 1);
   int i, x1, x2, layer;
 
   for (i = 0; i < tree->num_layers - 1; i++) {
@@ -1127,7 +1135,7 @@ void draw_reqtree(struct reqtree *tree, struct canvas *pcanvas,
  	        icon_startx += swidth + 2;
               }
             } requirement_vector_iterate_end;
-          } governments_iterate_end;
+          } governments_iterate_end(gov);
         }
       }
 

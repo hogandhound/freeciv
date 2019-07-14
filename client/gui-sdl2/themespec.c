@@ -233,16 +233,22 @@ const char **get_theme_list(void)
 static char *themespec_fullname(const char *theme_name)
 {
   if (theme_name) {
-    char fname[strlen(theme_name) + strlen(THEMESPEC_SUFFIX) + 1], *dname;
+    //char fname[strlen(theme_name) + strlen(THEMESPEC_SUFFIX) + 1], *dname;
+    size_t fnameLen = strlen(theme_name) + strlen(THEMESPEC_SUFFIX) + 1;
+	char *fname = hh_malloc(fnameLen);
+	char *dname;
 
-    fc_snprintf(fname, sizeof(fname),
+    fc_snprintf(fname, fnameLen,
                 "%s%s", theme_name, THEMESPEC_SUFFIX);
 
     dname = fname;
 
     if (dname) {
-      return fc_strdup(dname);
+		dname = fc_strdup(dname);
+        free(fname);
+        return dname;
     }
+    free(fname);
   }
 
   return NULL;
@@ -374,11 +380,14 @@ void themespec_reread(const char *new_theme_name)
   struct tile *center_tile;
   enum client_states state = client_state();
   const char *name = new_theme_name ? new_theme_name : theme->name;
-  char theme_name[strlen(name) + 1], old_name[strlen(theme->name) + 1];
+  //char theme_name[strlen(name) + 1], old_name[strlen(theme->name) + 1];
+  size_t theme_size = strlen(name), old_size = strlen(theme->name);
+  char *theme_name = hh_malloc(theme_size+1);
+  char* old_name = hh_malloc(old_size + 1);
 
   /* Make local copies since these values may be freed down below */
-  sz_strlcpy(theme_name, name);
-  sz_strlcpy(old_name, theme->name);
+  fc_strlcpy(theme_name, name, theme_size);
+  fc_strlcpy(old_name, theme->name, old_size);
 
   log_normal(_("Loading theme \"%s\"."), theme_name);
 
@@ -406,6 +415,8 @@ void themespec_reread(const char *new_theme_name)
                          "Failed to re-read the currently loaded theme.");
     }
   }
+  free(theme_name);
+  free(old_name);
 /*  sz_strlcpy(gui_sdl2_default_theme_name, theme->name);*/
   theme_load_sprites(theme);
 
@@ -456,17 +467,21 @@ static struct sprite *load_gfx_file(const char *gfx_filename)
   /* Try out all supported file extensions to find one that works. */
   while ((gfx_fileext = *gfx_fileexts++)) {
     const char *real_full_name;
-    char full_name[strlen(gfx_filename) + strlen(".")
-                   + strlen(gfx_fileext) + 1];
+    //char full_name[strlen(gfx_filename) + strlen(".")
+    //               + strlen(gfx_fileext) + 1];
+    char *full_name = hh_malloc(strlen(gfx_filename) + strlen(".")
+        + strlen(gfx_fileext) + 1);
 
     sprintf(full_name, "%s.%s", gfx_filename, gfx_fileext);
     if ((real_full_name = fileinfoname(get_data_dirs(), full_name))) {
       log_debug("trying to load gfx file \"%s\".", real_full_name);
       s = load_gfxfile(real_full_name);
+      free(full_name);
       if (s) {
         return s;
       }
     }
+    free(full_name);
   }
 
   log_error("Could not load gfx file \"%s\".", gfx_filename);

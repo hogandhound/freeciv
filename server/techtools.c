@@ -98,7 +98,7 @@ void script_tech_learned(struct research *presearch,
     if (member != originating_plr) {
       script_server_signal_emit("tech_researched", tech, member, reason);
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(member);
 }
 
 /************************************************************************//**
@@ -227,7 +227,7 @@ void do_tech_parasite_effect(struct player *pplayer)
   research_players_iterate(presearch, member) {
     script_server_signal_emit("tech_researched", advance_by_number(tech),
                               member, "stolen");
-  } research_players_iterate_end;
+  } research_players_iterate_end(member);
 }
 
 /************************************************************************//**
@@ -252,7 +252,7 @@ package_research_info(struct packet_research_info *packet,
     city_list_iterate(pplayer->cities, pcity) {
       packet->total_bulbs_prod += pcity->surplus[O_SCIENCE];
     } city_list_iterate_end;
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
   advance_index_iterate(A_NONE, i) {
     packet->inventions[i] = presearch->inventions[i].state + '0';
   } advance_index_iterate_end;
@@ -299,7 +299,7 @@ void send_research_info(const struct research *presearch,
             send_packet_research_info(pconn, &restricted_info);
             break;
           }
-        } research_players_iterate_end;
+        } research_players_iterate_end(powner);
       }
     } else if (pconn->observer) {
       /* Case global observer. */
@@ -316,8 +316,10 @@ void send_research_info(const struct research *presearch,
 void found_new_tech(struct research *presearch, Tech_type_id tech_found,
                     bool was_discovery, bool saving_bulbs)
 {
-  int had_embassies[player_slot_count()];
-  bool could_switch[player_slot_count()][government_count()];
+  //int had_embassies[player_slot_count()];
+  //bool could_switch[player_slot_count()][government_count()];
+  int *had_embassies = hh_calloc(player_slot_count(), sizeof(int));
+  bool *could_switch = hh_calloc(player_slot_count()*government_count(), sizeof(bool));
   bool was_first = FALSE;
   bool bonus_tech_hack = FALSE;
   int i;
@@ -380,9 +382,9 @@ void found_new_tech(struct research *presearch, Tech_type_id tech_found,
     /* Memorize for the players sharing the research what government
      * they could switch on. */
     governments_iterate(pgov) {
-      could_switch[i][government_index(pgov)]
+      could_switch[i + player_slot_count()*government_index(pgov)]
           = can_change_to_government(aplayer, pgov);
-    } governments_iterate_end;
+    } governments_iterate_end(pgov);
   } players_iterate_end;
 
   /* got_tech allows us to change research without applying techpenalty
@@ -441,7 +443,7 @@ void found_new_tech(struct research *presearch, Tech_type_id tech_found,
 
       /* Notify a player about new governments available */
       governments_iterate(pgov) {
-        if (!could_switch[i][government_index(pgov)]
+        if (!could_switch[i + player_slot_count()*government_index(pgov)]
             && can_change_to_government(aplayer, pgov)) {
           notify_player(aplayer, NULL, E_NEW_GOVERNMENT, ftc_server,
                         _("Discovery of %s makes the government form %s"
@@ -449,7 +451,7 @@ void found_new_tech(struct research *presearch, Tech_type_id tech_found,
                         advance_name,
                         government_name_translation(pgov));
         }
-      } governments_iterate_end;
+      } governments_iterate_end(pgov);
     }
 
     /* For any player. */
@@ -509,7 +511,7 @@ void found_new_tech(struct research *presearch, Tech_type_id tech_found,
             next_tech = pick_random_tech(presearch);
             break;
           }
-        } research_players_iterate_end;
+        } research_players_iterate_end(aplayer);
       }
 
       if (A_UNSET == next_tech) {
@@ -567,6 +569,8 @@ void found_new_tech(struct research *presearch, Tech_type_id tech_found,
                               _("%s acquire %s as a result of learning %s."),
                               research_name, radv_name, advance_name);
   }
+  free(had_embassies);
+  free(could_switch);
 }
 
 /************************************************************************//**
@@ -754,7 +758,7 @@ pick_random_government(struct player *pplayer)
     if (can_change_to_government(pplayer, pgov) && 0 == fc_rand(++gov_nb)) {
       picked = pgov;
     }
-  } governments_iterate_end;
+  } governments_iterate_end(pgov);
   fc_assert(NULL != picked);
   return picked;
 }
@@ -881,7 +885,7 @@ static void research_tech_lost(struct research *presearch, Tech_type_id tech)
         send_city_info(pplayer, pcity);
       }
     } city_list_iterate_end;
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
 }
 
 /************************************************************************//**
@@ -1096,7 +1100,7 @@ void init_tech(struct research *research, bool update)
                     "upkeep: %4d", research_number(research),
                     advance_rule_name(advance_by_number(tech)), tech,
                     research->techs_researched, player_tech_upkeep(pplayer));
-        } research_players_iterate_end;
+        } research_players_iterate_end(member);
       }
     }
 
@@ -1161,7 +1165,7 @@ void give_initial_techs(struct research *presearch, int num_random_techs)
         found_new_tech(presearch, pnation->init_techs[i], FALSE, TRUE);
       }
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
 
   /* Random free techs (N.B.: freecost penalty not applied). */
   for (i = 0; i < num_random_techs; i++) {

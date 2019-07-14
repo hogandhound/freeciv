@@ -145,7 +145,8 @@ void adjust_int_map_filtered(int *int_map, int int_map_max, void *data,
 
   {
     int const size = 1 + maxval - minval;
-    int i, count = 0, frequencies[size];
+    int i, count = 0;// , frequencies[size];
+    int * frequencies = hh_malloc(sizeof(int)*size);
 
     INITIALIZE_ARRAY(frequencies, size, 0);
 
@@ -167,6 +168,7 @@ void adjust_int_map_filtered(int *int_map, int int_map_max, void *data,
     whole_map_iterate_filtered(ptile, data, filter) {
       int_map[tile_index(ptile)] = frequencies[int_map[tile_index(ptile)]];
     } whole_map_iterate_filtered_end;
+    free(frequencies);
   }
 }
 
@@ -344,7 +346,8 @@ static void assign_continent_flood(struct tile *ptile, bool is_land, int nr)
 **************************************************************************/
 void regenerate_lakes(void)
 {
-  struct terrain *lake_for_ocean[2][wld.map.num_oceans];
+  //struct terrain *lake_for_ocean[2][wld.map.num_oceans];
+    struct terrain **lake_for_ocean = hh_calloc(2*wld.map.num_oceans, sizeof(struct terrain *));
 
   {
     struct terrain *lakes[2][5];
@@ -376,14 +379,14 @@ void regenerate_lakes(void)
       return;
     } else if (num_laketypes[1] == 0) {
       for (i = 0; i < wld.map.num_oceans; i++) {
-        lake_for_ocean[0][i] = lake_for_ocean[1][i]
+        lake_for_ocean[0 + 2*i] = lake_for_ocean[1 + 2 * i]
           = lakes[0][fc_rand(num_laketypes[0])];
       }
     } else {
       for (i = 0; i < wld.map.num_oceans; i++) {
         int frozen;
         for (frozen = 0; frozen < 2; frozen++) {
-          lake_for_ocean[frozen][i]
+          lake_for_ocean[frozen + 2 * i]
             = lakes[frozen][fc_rand(num_laketypes[frozen])];
         }
       }
@@ -403,10 +406,11 @@ void regenerate_lakes(void)
     if (0 < lake_surrounders[-here]) {
       if (terrain_control.lake_max_size >= ocean_sizes[-here]) {
         int frozen = terrain_has_flag(pterrain, TER_FROZEN);
-        tile_change_terrain(ptile, lake_for_ocean[frozen][-here-1]);
+        tile_change_terrain(ptile, lake_for_ocean[frozen + 2 * -here-1]);
       }
     }
   } whole_map_iterate_end;
+  free(lake_for_ocean);
 }
 
 /**********************************************************************//**
@@ -676,8 +680,9 @@ void generator_free(void)
 **************************************************************************/
 struct terrain *pick_terrain_by_flag(enum terrain_flag_id flag)
 {
-  bool has_flag[terrain_count()];
+  //bool has_flag[terrain_count()];
   int count = 0;
+  bool *has_flag = calloc(terrain_count(),sizeof(bool));
 
   terrain_type_iterate(pterrain) {
     if ((has_flag[terrain_index(pterrain)]

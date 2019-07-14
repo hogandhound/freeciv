@@ -555,10 +555,12 @@ void update_city_activities(struct player *pplayer)
   pplayer->server.bulbs_last_turn = 0;
 
   if (n > 0) {
-    struct city *cities[n];
+    //struct city *cities[n];
+      struct city **cities = hh_calloc(n,sizeof(struct city*));
     int i = 0, r;
 
     city_list_iterate(pplayer->cities, pcity) {
+      int ci;
 
       citizens_convert(pcity);
 
@@ -590,7 +592,7 @@ void update_city_activities(struct player *pplayer)
             free(back);
           }
         }
-      } trade_routes_iterate_safe_end;
+      } trade_routes_iterate_safe_end(proute);
 
       /* Add cities to array for later random order handling */
       cities[i++] = pcity;
@@ -630,7 +632,7 @@ void update_city_activities(struct player *pplayer)
         break;
       }
     }
-
+    free(cities);
     /* Should not happen. */
     fc_assert(pplayer->economic.gold >= 0);
   }
@@ -1061,7 +1063,7 @@ static void city_populate(struct city *pcity, struct player *nationality)
         }
 	return;
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
     if (city_size_get(pcity) > 1) {
       notify_player(city_owner(pcity), city_tile(pcity),
                     E_CITY_FAMINE, ftc_server,
@@ -2138,7 +2140,7 @@ static bool city_distribute_surplus_shields(struct player *pplayer,
 
 	/* pcity->surplus[O_SHIELD] is automatically updated. */
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   }
 
   if (pcity->surplus[O_SHIELD] < 0) {
@@ -2162,7 +2164,7 @@ static bool city_distribute_surplus_shields(struct player *pplayer,
 	/* No upkeep for the unit this turn. */
 	pcity->surplus[O_SHIELD] += upkeep;
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   }
 
   /* Now we confirm changes made last turn. */
@@ -3828,7 +3830,7 @@ void check_disasters(void)
           }
         }
       } disaster_type_iterate_end;
-    } city_list_iterate_safe_end;
+    } city_list_iterate_safe_end(pcity);
   } players_iterate_end;
 }
 
@@ -3991,7 +3993,7 @@ static bool check_city_migrations_player(const struct player *pplayer)
       /* stop here */
       continue;
     }
-  } city_list_iterate_safe_end;
+  } city_list_iterate_safe_end(pcity);
 
   return internat;
 }

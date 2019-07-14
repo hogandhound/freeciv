@@ -1566,7 +1566,7 @@ bool startpos_unpack(struct startpos *psp,
     if (BV_ISSET(packet->nations, nation_number(pnation))) {
       nation_hash_insert(psp->nations, pnation, NULL);
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
   return TRUE;
 }
 

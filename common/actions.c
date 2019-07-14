@@ -386,7 +386,7 @@ static void hard_code_oblig_hard_reqs_ruleset(void)
                               "non animal player actor.",
                               ACTION_CONQUER_CITY, ACTION_NONE);
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 }
 
 /**********************************************************************//**

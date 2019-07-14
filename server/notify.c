@@ -410,7 +410,7 @@ void notify_research(const struct research *presearch,
       lsend_packet_chat_msg(aplayer->connections, &genmsg);
       players = event_cache_player_add(players, aplayer);
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(aplayer);
 
   /* Add to the cache */
   event_cache_add_for_players(&genmsg, players);
@@ -456,7 +456,7 @@ void notify_research_embassies(const struct research *presearch,
         players = event_cache_player_add(players, aplayer);
         break;
       }
-    } research_players_iterate_end;
+    } research_players_iterate_end(rplayer);
   } players_iterate_end;
 
   /* Add to the cache */

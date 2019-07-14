@@ -196,6 +196,8 @@ int settings_list_cmp(const struct setting *const *pset1,
 
 static bool set_enum_value(struct setting *pset, int val);
 
+
+
 /****************************************************************************
   Enumerator name accessors.
 
@@ -1287,7 +1289,7 @@ static bool plrcol_validate(int value, struct connection *caller,
         /* At least one nation has a color. Allow this mode. */
         return TRUE;
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
     settings_snprintf(reject_msg, reject_msg_len,
                       _("No nations in the currently loaded ruleset have "
                         "associated colors."));
@@ -1295,6 +1297,13 @@ static bool plrcol_validate(int value, struct connection *caller,
   }
   return TRUE;
 }
+
+
+/* Beginning of C99 structure initializer */
+#define INIT_BRACE_BEGIN {
+
+/* End of C99 structure initializer */
+#define INIT_BRACE_END }
 
 #define GEN_BOOL(name, value, sclass, scateg, slevel, al_read, al_write,    \
                  short_help, extra_help, func_validate, func_action,        \
@@ -1435,12 +1444,12 @@ static struct setting settings[] = {
   GEN_BITWISE("topology", wld.map.topology_id, SSET_MAP_SIZE,
               SSET_GEOLOGY, SSET_VITAL, ALLOW_NONE, ALLOW_BASIC,
               N_("Map topology index"),
-#ifdef FREECIV_WEB
-              /* TRANS: Freeciv-web version of the help text. */
-              N_("Freeciv-web maps are always two-dimensional. They may wrap "
-                 "at the east-west directions to form a flat map or a "
-                 "cylinder.\n"),
-#else /* FREECIV_WEB */
+//#ifdef FREECIV_WEB
+//              /* TRANS: Freeciv-web version of the help text. */
+//              N_("Freeciv-web maps are always two-dimensional. They may wrap "
+//                 "at the east-west directions to form a flat map or a "
+//                 "cylinder.\n"),
+//#else /* FREECIV_WEB */
               /* TRANS: do not edit the ugly ASCII art */
               N_("Freeciv maps are always two-dimensional. They may wrap at "
                  "the north-south and east-west directions to form a flat "
@@ -1462,7 +1471,7 @@ static struct setting settings[] = {
                  "   | | | | | | |            / \\_/ \\_/ \\_/ \\_/ \\\n"
                  "   \\/\\/\\/\\/\\/\\/"
                  "             \\_/ \\_/ \\_/ \\_/ \\_/\n"),
-#endif /* FREECIV_WEB */
+//#endif /* FREECIV_WEB */
               topology_callback, topology_action, topology_name, MAP_DEFAULT_TOPO)
 
   GEN_ENUM("generator", wld.map.server.generator,
@@ -1683,11 +1692,11 @@ static struct setting settings[] = {
 
   GEN_INT("mapseed", wld.map.server.seed_setting,
           SSET_MAP_GEN, SSET_INTERNAL, SSET_RARE,
-#ifdef FREECIV_WEB
-          ALLOW_NONE, ALLOW_BASIC,
-#else /* FREECIV_WEB */
+//#ifdef FREECIV_WEB
+//          ALLOW_NONE, ALLOW_BASIC,
+//#else /* FREECIV_WEB */
           ALLOW_HACK, ALLOW_HACK,
-#endif /* FREECIV_WEB */
+//#endif /* FREECIV_WEB */
           N_("Map generation random seed"),
           N_("The same seed will always produce the same map; "
              "for zero (the default) a seed will be chosen based on "
@@ -1702,11 +1711,11 @@ static struct setting settings[] = {
    */
   GEN_INT("gameseed", game.server.seed_setting,
           SSET_MAP_ADD, SSET_INTERNAL, SSET_RARE,
-#ifdef FREECIV_WEB
-          ALLOW_NONE, ALLOW_BASIC,
-#else /* FREECIV_WEB */
+//#ifdef FREECIV_WEB
+//          ALLOW_NONE, ALLOW_BASIC,
+//#else /* FREECIV_WEB */
           ALLOW_HACK, ALLOW_HACK,
-#endif /* FREECIV_WEB */
+//#endif /* FREECIV_WEB */
           N_("Game random seed"),
           N_("For zero (the default) a seed will be chosen based "
              "on the current time."),
@@ -2998,11 +3007,11 @@ static struct setting settings[] = {
 
   GEN_BOOL("scorelog", game.server.scorelog,
            SSET_META, SSET_INTERNAL, SSET_SITUATIONAL,
-#ifdef FREECIV_WEB
-           ALLOW_NONE, ALLOW_CTRL,
-#else /* FREECIV_WEB */
+//#ifdef FREECIV_WEB
+//           ALLOW_NONE, ALLOW_CTRL,
+//#else /* FREECIV_WEB */
            ALLOW_HACK, ALLOW_HACK,
-#endif /* FREECIV_WEB */
+//#endif /* FREECIV_WEB */
            N_("Whether to log player statistics"),
            /* TRANS: The string between single quotes is a setting name and
             * should not be translated. */

@@ -288,12 +288,15 @@ char *convert_string(const char *text,
 char *src ## _to_ ## dst ## _string_malloc(const char *text)                \
 {                                                                           \
   const char *encoding1 = (dst ## _encoding);				    \
-  char encoding[strlen(encoding1) + strlen(transliteration_string) + 1];    \
+  size_t encSize = strlen(encoding1) + strlen(transliteration_string) + 1; \
+  char* encoding = (char*)hh_malloc(encSize);    \
 									    \
-  fc_snprintf(encoding, sizeof(encoding),				    \
+  fc_snprintf(encoding, encSize,				    \
 	      "%s%s", encoding1, transliteration_string);		    \
-  return convert_string(text, (src ## _encoding),			    \
+  char* ret = convert_string(text, (src ## _encoding),			    \
 			(encoding), NULL, 0);				    \
+  free(encoding); \
+  return ret; \
 }
 
 #define CONV_FUNC_BUFFER(src, dst)                                          \
@@ -301,12 +304,15 @@ char *src ## _to_ ## dst ## _string_buffer(const char *text,                \
 					   char *buf, size_t bufsz)         \
 {                                                                           \
   const char *encoding1 = (dst ## _encoding);				    \
-  char encoding[strlen(encoding1) + strlen(transliteration_string) + 1];    \
+  size_t encSize = strlen(encoding1) + strlen(transliteration_string) + 1;\
+  char* encoding = (char*)hh_malloc(encSize);    \
 									    \
-  fc_snprintf(encoding, sizeof(encoding),				    \
+  fc_snprintf(encoding, encSize,				    \
 	      "%s%s", encoding1, transliteration_string);		    \
-  return convert_string(text, (src ## _encoding),			    \
+  char* ret = convert_string(text, (src ## _encoding),			    \
                         encoding, buf, bufsz);				    \
+  free(encoding); \
+  return ret; \
 }
 
 #define CONV_FUNC_STATIC(src, dst)                                          \
@@ -374,12 +380,14 @@ void fc_fprintf(FILE *stream, const char *format, ...)
 ***************************************************************************/
 size_t get_internal_string_length(const char *text)
 {
-  int text2[(strlen(text) + 1)]; /* UCS-4 text */
+  //int text2[(strlen(text) + 1)]; /* UCS-4 text */
+  size_t text2Size = (strlen(text) + 1) * sizeof(int);
+  int* text2 = (int*)hh_malloc(text2Size); /* UCS-4 text */
   int i;
   int len = 0;
 
   convert_string(text, internal_encoding, "UCS-4",
-                 (char *)text2, sizeof(text2));
+                 (char *)text2, text2Size);
   for (i = 0; ; i++) {
     if (text2[i] == 0) {
       return len;
@@ -389,4 +397,5 @@ size_t get_internal_string_length(const char *text)
       len++;
     }
   }
+  free(text2);
 }

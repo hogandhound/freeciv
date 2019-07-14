@@ -130,7 +130,7 @@ static enum tai_abort_msg_class tai_check_messages(struct ai_type *ait)
         if (new_abort < TAI_ABORT_NONE) {
           break;
         }
-      } city_list_iterate_safe_end;
+      } city_list_iterate_safe_end(pcity);
       fc_release_mutex(&game.server.mutexes.city_list);
 
       tai_send_req(TAI_REQ_TURN_DONE, msg->plr, NULL);

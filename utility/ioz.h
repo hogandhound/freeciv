@@ -25,7 +25,7 @@ extern "C" {
 
 #include <stdio.h>		/* FILE */
 
-#include <freeciv_config.h>
+#include <freeciv_config.h.in>
 
 #include "shared.h"		/* fc__attribute */
 

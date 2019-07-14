@@ -240,7 +240,7 @@ static bool is_valid_start_pos(const struct tile *ptile, const void *dataptr)
         || (real_map_distance(ptile, tile1) * 1000 / pdata->min_value < 5)) {
       return FALSE;
     }
-  } map_startpos_iterate_end;
+  } map_startpos_iterate_end(psp);
   return TRUE;
 }
 

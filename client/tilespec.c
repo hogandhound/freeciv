@@ -1078,13 +1078,16 @@ const struct strvec *get_tileset_list(const struct option *poption)
 static char *tilespec_fullname(const char *tileset_name)
 {
   if (tileset_name) {
-    char fname[strlen(tileset_name) + strlen(TILESPEC_SUFFIX) + 1];
+    //char fname[strlen(tileset_name) + strlen(TILESPEC_SUFFIX) + 1];
+    int fnamesize = sizeof(char)*(strlen(tileset_name) + strlen(TILESPEC_SUFFIX) + 1);
+	char *fname = hh_malloc(fnamesize);
     const char *dname;
 
-    fc_snprintf(fname, sizeof(fname),
+    fc_snprintf(fname, fnamesize,
                 "%s%s", tileset_name, TILESPEC_SUFFIX);
 
     dname = fileinfoname(get_data_dirs(), fname);
+	free(fname);
 
     if (dname) {
       return fc_strdup(dname);
@@ -1297,12 +1300,14 @@ bool tilespec_reread(const char *new_tileset_name,
   struct tile *center_tile;
   enum client_states state = client_state();
   const char *name = new_tileset_name ? new_tileset_name : tileset->name;
-  char tileset_name[strlen(name) + 1], old_name[strlen(tileset->name) + 1];
+  //char tileset_name[strlen(name) + 1], old_name[strlen(tileset->name) + 1];
+  size_t tile_size = strlen(name)+1, old_size = strlen(tileset->name)+1;
+  char *tileset_name=hh_malloc(tile_size), *old_name = malloc(old_size);
   bool new_tileset_in_use;
 
   /* Make local copies since these values may be freed down below */
-  sz_strlcpy(tileset_name, name);
-  sz_strlcpy(old_name, tileset->name);
+  fc_strlcpy(tileset_name, name, tile_size);
+  fc_strlcpy(old_name, tileset->name, old_size);
 
   log_normal(_("Loading tileset \"%s\"."), tileset_name);
 
@@ -1333,6 +1338,7 @@ bool tilespec_reread(const char *new_tileset_name,
    * We read in the new tileset.  This should be pretty straightforward.
    */
   tileset = tileset_read_toplevel(tileset_name, FALSE, -1, scale);
+  free(tileset_name);
   if (tileset != NULL) {
     new_tileset_in_use = TRUE;
   } else {
@@ -1344,6 +1350,7 @@ bool tilespec_reread(const char *new_tileset_name,
                          "Failed to re-read the currently loaded tileset.");
     }
   }
+  free(old_name);
   tileset_load_tiles(tileset);
   if (game_fully_initialized) {
     tileset_use_preferred_theme(tileset);
@@ -1390,13 +1397,13 @@ bool tilespec_reread(const char *new_tileset_name,
   } unit_type_iterate_end;
   governments_iterate(gov) {
     tileset_setup_government(tileset, gov);
-  } governments_iterate_end;
+  } governments_iterate_end(gov);
   extra_type_iterate(pextra) {
     tileset_setup_extra(tileset, pextra);
   } extra_type_iterate_end;
   nations_iterate(pnation) {
     tileset_setup_nation_flag(tileset, pnation);
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
   improvement_iterate(pimprove) {
     tileset_setup_impr_type(tileset, pimprove);
   } improvement_iterate_end;
@@ -1486,17 +1493,21 @@ static struct sprite *load_gfx_file(const char *gfx_filename)
   /* Try out all supported file extensions to find one that works. */
   while ((gfx_fileext = *gfx_fileexts++)) {
     const char *real_full_name;
-    char full_name[strlen(gfx_filename) + strlen(".")
-                   + strlen(gfx_fileext) + 1];
+    //char full_name[strlen(gfx_filename) + strlen(".")
+    //               + strlen(gfx_fileext) + 1];
+	char *full_name = hh_malloc(sizeof(char)*strlen(gfx_filename) + strlen(".")
+		+ strlen(gfx_fileext) + 1);
 
     sprintf(full_name, "%s.%s", gfx_filename, gfx_fileext);
     if ((real_full_name = fileinfoname(get_data_dirs(), full_name))) {
       log_debug("trying to load gfx file \"%s\".", real_full_name);
       s = load_gfxfile(real_full_name);
       if (s) {
-	return s;
+		free(full_name);
+	    return s;
       }
     }
+	free(full_name);
   }
 
   log_error("Could not load gfx file \"%s\".", gfx_filename);
@@ -3702,7 +3713,8 @@ static void tileset_setup_road(struct tileset *t,
                                struct extra_type *pextra,
                                const char *tag)
 {
-  char full_tag_name[MAX_LEN_NAME + strlen("_isolated")];
+  //char full_tag_name[MAX_LEN_NAME + strlen("_isolated")];
+  char full_tag_name[MAX_LEN_NAME + 9];
   const int id = extra_index(pextra);
   int i;
   enum extrastyle_id extrastyle = t->sprites.extras[id].extrastyle;
@@ -3810,7 +3822,8 @@ static void tileset_setup_base(struct tileset *t,
                                const struct extra_type *pextra,
                                const char *tag)
 {
-  char full_tag_name[MAX_LEN_NAME + strlen("_fg")];
+  //char full_tag_name[MAX_LEN_NAME + strlen("_fg")];
+  char full_tag_name[MAX_LEN_NAME + 3];
   const int id = extra_index(pextra);
 
   fc_assert_ret(id >= 0 && id < extra_count());

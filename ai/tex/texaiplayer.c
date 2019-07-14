@@ -214,7 +214,7 @@ static enum texai_abort_msg_class texai_check_messages(struct ai_type *ait)
         if (new_abort < TEXAI_ABORT_NONE) {
           break;
         }
-      } city_list_iterate_safe_end;
+      } city_list_iterate_safe_end(pcity);
       fc_release_mutex(&game.server.mutexes.city_list);
 
       texai_send_req(TEXAI_REQ_TURN_DONE, msg->plr, NULL);

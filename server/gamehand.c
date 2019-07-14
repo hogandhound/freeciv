@@ -426,8 +426,10 @@ static void do_team_placement(const struct team_placement_config *pconfig,
 void init_new_game(void)
 {
   struct startpos_list *impossible_list, *targeted_list, *flexible_list;
-  struct tile *player_startpos[player_slot_count()];
-  int placed_units[player_slot_count()];
+  //struct tile *player_startpos[player_slot_count()];
+  //int placed_units[player_slot_count()];
+  struct tile **player_startpos = hh_calloc(player_slot_count(), sizeof(struct tile*));
+  int *placed_units = hh_calloc(player_slot_count(),sizeof(int));
   int players_to_place = player_count();
   int sulen;
 
@@ -455,12 +457,12 @@ void init_new_game(void)
     } else {
       startpos_list_append(targeted_list, psp);
     }
-  } map_startpos_iterate_end;
+  } map_startpos_iterate_end(psp);
 
   fc_assert(startpos_list_size(targeted_list)
             + startpos_list_size(flexible_list) == map_startpos_count());
 
-  memset(player_startpos, 0, sizeof(player_startpos));
+  //memset(player_startpos, 0, sizeof(player_startpos));
   log_verbose("Placing players at start positions.");
 
   /* First assign start positions which have restrictions on which nations
@@ -839,6 +841,9 @@ void init_new_game(void)
     fc_assert_msg(game.server.start_city || 0 < placed_units[player_index(pplayer)],
                   _("No units placed for %s!"), player_name(pplayer));
   } players_iterate_end;
+
+  free(player_startpos);
+  free(placed_units);
 }
 
 /************************************************************************//**

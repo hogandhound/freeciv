@@ -105,6 +105,7 @@ void fc_release_mutex(fc_mutex *mutex)
   mtx_unlock(mutex);
 }
 
+#define FREECIV_HAVE_THREAD_COND
 /*******************************************************************//**
   Initialize condition
 ***********************************************************************/

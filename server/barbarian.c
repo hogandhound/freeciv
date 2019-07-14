@@ -276,7 +276,7 @@ bool unleash_barbarians(struct tile *ptile)
       || num_role_units(L_BARBARIAN) == 0) {
     unit_list_iterate_safe((ptile)->units, punit) {
       wipe_unit(punit, ULR_BARB_UNLEASH, NULL);
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
     return FALSE;
   }
 
@@ -355,7 +355,7 @@ bool unleash_barbarians(struct tile *ptile)
           barbarian_stays = TRUE;
         }
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit2);
 
   } else {
     if (ocean_tiles > 0) {
@@ -389,7 +389,7 @@ bool unleash_barbarians(struct tile *ptile)
               (void) unit_move_handling(punit2, btile, TRUE, TRUE, NULL);
             }
           }
-        } unit_list_iterate_safe_end;
+        } unit_list_iterate_safe_end(punit2);
       }
 
       /* Move rest of the barbarians to random land tiles */
@@ -422,7 +422,7 @@ bool unleash_barbarians(struct tile *ptile)
             barbarian_stays = TRUE;
           }
         }
-      } unit_list_iterate_safe_end;
+      } unit_list_iterate_safe_end(punit2);
     } else {
       /* The village is surrounded! Barbarians cannot leave. */
       barbarian_stays = TRUE;
@@ -438,7 +438,7 @@ bool unleash_barbarians(struct tile *ptile)
       } else {
         send_unit_info(NULL, punit2);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit2);
   }
 
   /* FIXME: I don't know if this is needed */

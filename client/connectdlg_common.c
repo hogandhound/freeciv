@@ -716,12 +716,13 @@ void send_save_game(const char *filename)
   }
 }
 
-/**********************************************************************//**
+/**************************************************************************
   Handle the list of rulesets sent by the server.
 **************************************************************************/
 void handle_ruleset_choices(const struct packet_ruleset_choices *packet)
 {
-  char *rulesets[packet->ruleset_count];
+  //char *rulesets[packet->ruleset_count];
+  char **rulesets = hh_malloc(packet->ruleset_count * sizeof(char*));
   int i;
   size_t suf_len = strlen(RULESET_SUFFIX);
 
@@ -740,6 +741,7 @@ void handle_ruleset_choices(const struct packet_ruleset_choices *packet)
   for (i = 0; i < packet->ruleset_count; i++) {
     free(rulesets[i]);
   }
+  free(rulesets);
 }
 
 /**********************************************************************//**

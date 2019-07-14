@@ -3010,7 +3010,7 @@ void key_recall_previous_focus_unit(void)
       unit_focus_add(punit);
     }
     i++;
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**
@@ -3431,7 +3431,7 @@ void key_unit_assign_battlegroup(int battlegroup, bool append)
 	  refresh_unit_mapcanvas(punit, unit_tile(punit), TRUE, FALSE);
 	  unit_list_remove(battlegroups[battlegroup], punit);
 	}
-      } unit_list_iterate_safe_end;
+      } unit_list_iterate_safe_end(punit);
     }
     unit_list_iterate(get_units_in_focus(), punit) {
       if (punit->battlegroup != battlegroup) {

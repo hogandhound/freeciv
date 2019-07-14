@@ -962,7 +962,7 @@ void adv_best_government(struct player *pplayer)
       }
 
       adv->government_want[government_index(gov)] = val; /* Save want */
-    } governments_iterate_end;
+    } governments_iterate_end(gov);
     /* Now reset our gov to it's real state. */
     pplayer->government = current_gov;
     city_list_iterate(pplayer->cities, acity) {
@@ -997,7 +997,7 @@ void adv_best_government(struct player *pplayer)
 	}
       } requirement_vector_iterate_end;
     }
-  } governments_iterate_end;
+  } governments_iterate_end(gov);
   /* Goodness of the ideal gov is calculated relative to the goodness of the
    * best of the available ones. */
   adv->goal.govt.val -= best_val;

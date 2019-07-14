@@ -181,7 +181,7 @@ void kill_player(struct player *pplayer)
                                   pcity->original, "death-back_to_original");
       }
     }
-  } city_list_iterate_safe_end;
+  } city_list_iterate_safe_end(pcity);
   game.server.savepalace = save_palace;
 
   /* let there be civil war */
@@ -223,7 +223,7 @@ void kill_player(struct player *pplayer)
         script_server_signal_emit("city_transferred", pcity, pplayer,
                                   barbarians, "death-barbarians_get");
       }
-    } city_list_iterate_safe_end;
+    } city_list_iterate_safe_end(pcity);
 
     game.server.savepalace = palace;
       
@@ -242,7 +242,7 @@ void kill_player(struct player *pplayer)
   /* Remove all units that are still ours */
   unit_list_iterate_safe(pplayer->units, punit) {
     wipe_unit(punit, ULR_PLAYER_DIED, NULL);
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   /* Remove ownership of tiles */
   whole_map_iterate(&(wld.map), ptile) {
@@ -1529,7 +1529,7 @@ void assign_player_colors(void)
           }
         } rgbcolor_list_iterate_end;
       }
-    } allowed_nations_iterate_end;
+    } allowed_nations_iterate_end(pnation);
   }
 
   fc_assert(game.server.plrcolormode == PLRCOL_PLR_RANDOM
@@ -1764,7 +1764,7 @@ void server_remove_player(struct player *pplayer)
 
       FC_FREE(proute);
       FC_FREE(pback);
-    } trade_routes_iterate_safe_end;
+    } trade_routes_iterate_safe_end(proute);
   } city_list_iterate_end;
 
   /* We have to clear all player data before the ai memory is freed because
@@ -2116,7 +2116,7 @@ void maybe_make_contact(struct tile *ptile, struct player *pplayer)
     }
     unit_list_iterate_safe(tile1->units, punit) {
       make_contact(pplayer, unit_owner(punit), ptile);
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   } square_iterate_end;
 }
 
@@ -2176,7 +2176,11 @@ struct player *shuffled_player(int i)
   return pplayer;
 }
 
-/**********************************************************************//**
+enum {
+    UNAVAILABLE, AVAILABLE, PREFERRED, UNWANTED
+} NATION_STATUS;
+
+/****************************************************************************
   This function returns a random-ish nation that is suitable for 'barb_type'
   and is usable (not already in use by an existing player, and if
   needs_startpos is set, would not be prohibited from starting on the map
@@ -2203,10 +2207,9 @@ struct nation_type *pick_a_nation(const struct nation_list *choices,
                                   bool needs_startpos,
                                   enum barbarian_type barb_type)
 {
-  enum {
-    UNAVAILABLE, AVAILABLE, PREFERRED, UNWANTED
-  } nations_used[nation_count()], looking_for;
-  int match[nation_count()], pick, idx;
+  enum NATION_STATUS *nations_used = hh_calloc(nation_count(), sizeof(enum NATION_STATUS)), looking_for; //nations_used[nation_count()]
+  int pick, idx; //match[nation_count()], 
+  int*match = hh_calloc(nation_count(), sizeof(int));
   int num_avail_nations = 0, num_pref_nations = 0;
 
   /* Values of nations_used:
@@ -2258,7 +2261,7 @@ struct nation_type *pick_a_nation(const struct nation_list *choices,
     if (AVAILABLE == nations_used[idx]) {
       num_avail_nations += match[idx];
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   /* Mark as preferred those nations which are on the choices list and
    * which are AVAILABLE, but no UNWANTED */
@@ -2292,10 +2295,12 @@ struct nation_type *pick_a_nation(const struct nation_list *choices,
         pick -= match[idx];
 
         if (0 > pick) {
+            free(nations_used);
+            free(match);
           return pnation;
         }
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
   } else {
     /* No available nation: use unwanted nation... */
     struct nation_type *less_worst_nation = NO_NATION_SELECTED;
@@ -2311,15 +2316,19 @@ struct nation_type *pick_a_nation(const struct nation_list *choices,
           less_worst_score = pick;
         }
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
 
     if (NO_NATION_SELECTED != less_worst_nation) {
+      free(match);
+      free(nations_used);
       return less_worst_nation;
     }
   }
 
   log_verbose("No nation found!");
 
+  free(match);
+  free(nations_used);
   return NO_NATION_SELECTED;
 }
 
@@ -2351,7 +2360,7 @@ void count_playable_nations(void)
     if (is_nation_playable(pnation)) {
       server.playable_nations++;
     }
-  } allowed_nations_iterate_end;
+  } allowed_nations_iterate_end(pnation);
 }
 
 /**********************************************************************//**
@@ -2380,7 +2389,7 @@ static void send_nation_availability_real(struct conn_list *dest,
   packet.nationset_change = nationset_change;
   nations_iterate(pnation) {
     packet.is_pickable[nation_index(pnation)] = client_can_pick_nation(pnation);
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
   lsend_packet_nation_availability(dest, &packet);
 }
 
@@ -2404,7 +2413,8 @@ void send_nation_availability(struct conn_list *dest,
 **************************************************************************/
 void fit_nationset_to_players(void)
 {
-  int misfits[nation_set_count()];
+  //int misfits[nation_set_count()];
+  int *misfits = hh_calloc(nation_set_count(),sizeof(int));
   nation_sets_iterate(pset) {
     misfits[nation_set_index(pset)] = 0;
     players_iterate(pplayer) {
@@ -2413,10 +2423,11 @@ void fit_nationset_to_players(void)
         misfits[nation_set_index(pset)]++;
       }
     } players_iterate_end;
-  } nation_sets_iterate_end;
+  } nation_sets_iterate_end(pset);
 
   if (misfits[nation_set_index(current_nationset())] == 0) {
     /* Current set is OK. */
+    free(misfits);
     return;
   }
 
@@ -2461,6 +2472,8 @@ void fit_nationset_to_players(void)
       player_set_nation(pplayer, NO_NATION_SELECTED);
     }
   } players_iterate_end;
+
+  free(misfits);
 }
 
 /**********************************************************************//**

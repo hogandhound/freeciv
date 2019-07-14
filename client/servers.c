@@ -435,7 +435,7 @@ static bool begin_lanserver_scan(struct server_scan *scan)
     return FALSE;
   }
 
-  if (bind(scan->sock, &addr.saddr, sockaddr_size(&addr)) < 0) {
+  if (bind(scan->sock, &addr.saddr, fc_sockaddr_size(&addr)) < 0) {
     char errstr[2048];
 
     fc_snprintf(errstr, sizeof(errstr),
@@ -535,7 +535,7 @@ static bool begin_lanserver_scan(struct server_scan *scan)
  
 
   if (sendto(send_sock, buffer, size, 0, &addr.saddr,
-             sockaddr_size(&addr)) < 0) {
+      fc_sockaddr_size(&addr)) < 0) {
     /* This can happen when there's no network connection - it should
      * give an in-game message. */
     log_error("lanserver scan sendto failed: %s",

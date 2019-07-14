@@ -61,6 +61,9 @@ char *real_fc_strdup(const char *str,
                      const char *called_as, int line, const char *file)
                      fc__warn_unused_result;
 
+#define hh_malloc malloc
+#define hh_calloc calloc
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

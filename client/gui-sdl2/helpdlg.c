@@ -636,7 +636,8 @@ void popup_unit_info(Unit_type_id type_id)
   bool created, text = FALSE;
   int scrollbar_width = 0;
   struct unit_type *pUnitType;
-  char buffer[bufsz];
+  //char buffer[bufsz];
+  char *buffer = hh_malloc(bufsz);
   SDL_Rect area;
 
   if (current_help_dlg != HELP_UNIT) {
@@ -901,7 +902,7 @@ void popup_unit_info(Unit_type_id type_id)
   start_x = (area.x + 1 + scrollbar_width + pHelpDlg->pActiveWidgetList->size.w + adj_size(20));
 
   buffer[0] = '\0';
-  helptext_unit(buffer, sizeof(buffer), client.conn.playing, "", utype_by_number(type_id));
+  helptext_unit(buffer, bufsz, client.conn.playing, "", utype_by_number(type_id));
   if (buffer[0] != '\0') {
     utf8_str *ustr = create_utf8_from_char(buffer, adj_font(12));
 
@@ -912,6 +913,7 @@ void popup_unit_info(Unit_type_id type_id)
     pDock = pHelptextLabel;
     text = TRUE;
   }
+  free(buffer);
 
   pHelpDlg->pBeginWidgetList = pHelptextLabel ? pHelptextLabel : pObsoleteByLabel2;
 
@@ -1111,7 +1113,8 @@ static struct widget *create_tech_info(Tech_type_id tech, int width,
   struct widget *pDock = pStore->pDock;
   int i, targets_count,sub_targets_count, max_width = 0;
   int start_x, start_y, imp_count, unit_count, flags_count, gov_count;
-  char buffer[bufsz];
+  //char buffer[bufsz];
+  char *buffer = hh_malloc(bufsz);
   SDL_Surface *pSurf;
 
   start_x = (pWindow->area.x + adj_size(1) + width + pHelpDlg->pActiveWidgetList->size.w + adj_size(20));
@@ -1216,7 +1219,7 @@ static struct widget *create_tech_info(Tech_type_id tech, int width,
         gov_count++;
       }
     } requirement_vector_iterate_end;
-  } governments_iterate_end;
+  } governments_iterate_end(gov);
 
   /* target improvements */
   imp_count = 0;
@@ -1269,7 +1272,7 @@ static struct widget *create_tech_info(Tech_type_id tech, int width,
   } unit_type_iterate_end;
 
   buffer[0] = '\0';
-  helptext_advance(buffer, sizeof(buffer), client.conn.playing, "", tech);
+  helptext_advance(buffer, bufsz, client.conn.playing, "", tech);
   if (buffer[0] != '\0') {
     utf8_str *pstr = create_utf8_from_char(buffer, adj_font(12));
 
@@ -1282,6 +1285,7 @@ static struct widget *create_tech_info(Tech_type_id tech, int width,
   } else {
     flags_count = 0;
   }
+  free(buffer);
 
   pLast = pWidget;
   /* --------------------------------------------- */

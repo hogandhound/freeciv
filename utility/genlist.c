@@ -629,9 +629,11 @@ void genlist_sort(struct genlist *pgenlist,
 void genlist_shuffle(struct genlist *pgenlist)
 {
   const int n = genlist_size(pgenlist);
-  void *sortbuf[n];
+  //void *sortbuf[n];
+  void **sortbuf = hh_malloc(n*sizeof(void*));
   struct genlist_link *myiter;
-  int i, shuffle[n];
+  int i;// , shuffle[n];
+  int * shuffle = malloc(n * sizeof(int));
 
   if (n <= 1) {
     return;
@@ -652,6 +654,8 @@ void genlist_shuffle(struct genlist *pgenlist)
   for (i = 0; i < n; i++, myiter = myiter->next) {
     myiter->dataptr = sortbuf[shuffle[i]];
   }
+  free(shuffle);
+  free(sortbuf);
 }
 
 /************************************************************************//**

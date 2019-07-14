@@ -673,7 +673,7 @@ void send_all_info(struct conn_list *dest)
   send_player_all_c(NULL, dest);
   researches_iterate(presearch) {
     send_research_info(presearch, dest);
-  } researches_iterate_end;
+  } researches_iterate_end(presearch);
   send_map_info(dest);
   send_all_known_tiles(dest);
   send_all_known_cities(dest);
@@ -847,7 +847,7 @@ static void remove_illegal_armistice_units(struct player *plr1,
                     nation_plural_for_player(plr2));
       wipe_unit(punit, ULR_ARMISTICE, NULL);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
   unit_list_iterate_safe(plr2->units, punit) {
     if (tile_owner(unit_tile(punit)) == plr1
         && is_military_unit(punit)) {
@@ -858,7 +858,7 @@ static void remove_illegal_armistice_units(struct player *plr1,
                     nation_plural_for_player(plr1));
       wipe_unit(punit, ULR_ARMISTICE, NULL);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**
@@ -1128,7 +1128,7 @@ static void begin_turn(bool is_new_turn)
           wipe_unit(punit, ULR_RETIRED, NULL);
           continue;
         }
-      } unit_list_iterate_safe_end;
+      } unit_list_iterate_safe_end(punit);
     } players_iterate_end;
   }
 
@@ -1623,7 +1623,7 @@ static void end_turn(void)
   log_debug("Sendresearchinfo");
   researches_iterate(presearch) {
     send_research_info(presearch, NULL);
-  } researches_iterate_end;
+  } researches_iterate_end(presearch);
 
   log_debug("Sendyeartoclients");
   send_year_to_clients();
@@ -2141,14 +2141,14 @@ void update_nations_with_startpos(void)
             pnation->server.no_startpos = FALSE;
             break;
           }
-        } map_startpos_iterate_end;
+        } map_startpos_iterate_end(psp);
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
   } else {
     /* Not restricting nations by start positions. */
     nations_iterate(pnation) {
       pnation->server.no_startpos = FALSE;
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
   }
 }
 
@@ -2490,7 +2490,7 @@ static void generate_players(void)
           nation_list_append(candidates, pnation);
           n++;
         }
-      } allowed_nations_iterate_end;
+      } allowed_nations_iterate_end(pnation);
       if (n > 0) {
         player_set_nation_full(pplayer,
                                nation_list_get(candidates, fc_rand(n)));
@@ -2533,7 +2533,7 @@ static void generate_players(void)
       if (c > max) {
         max = c;
       }
-    } map_startpos_iterate_end;
+    } map_startpos_iterate_end(psp);
 
     /* Try to assign nations with start positions to the unassigned
      * players, preferring nations whose start positions aren't usable
@@ -2571,7 +2571,7 @@ static void generate_players(void)
             picked = pnation;
           }
         } startpos_hash_iterate_end;
-      } allowed_nations_iterate_end;
+      } allowed_nations_iterate_end(pnation);
 
       if (NO_NATION_SELECTED != picked) {
         player_set_nation_full(pplayer, picked);
@@ -3187,7 +3187,7 @@ static void srv_ready(void)
     researches_iterate(presearch) {
       init_tech(presearch, TRUE);
       give_initial_techs(presearch, game.info.tech);
-    } researches_iterate_end;
+    } researches_iterate_end(presearch);
 
     /* Set up alliances based on team selections */
     players_iterate(pplayer) {

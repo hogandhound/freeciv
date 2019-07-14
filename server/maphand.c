@@ -129,8 +129,9 @@ void nuclear_winter(int effect)
 void climate_change(bool warming, int effect)
 {
   int k = map_num_tiles();
-  bool used[k];
-  memset(used, 0, sizeof(used));
+  //bool used[k];
+  bool *used = hh_calloc(k,sizeof(bool));
+  //memset(used, 0, sizeof(used));
 
   log_verbose("Climate change: %s (%d)",
               warming ? "Global warming" : "Nuclear winter", effect);
@@ -213,6 +214,7 @@ void climate_change(bool warming, int effect)
       effect--;
     }
   }
+  free(used);
 }
 
 /**********************************************************************//**
@@ -1537,7 +1539,8 @@ static void create_vision_dependencies(void)
 **************************************************************************/
 void give_shared_vision(struct player *pfrom, struct player *pto)
 {
-  bv_player save_vision[player_slot_count()];
+  //bv_player save_vision[player_slot_count()];
+  bv_player *save_vision = 0;
   if (pfrom == pto) return;
   if (gives_shared_vision(pfrom, pto)) {
     log_error("Trying to give shared vision from %s to %s, "
@@ -1545,6 +1548,7 @@ void give_shared_vision(struct player *pfrom, struct player *pto)
               player_name(pfrom), player_name(pto));
     return;
   }
+  save_vision = hh_calloc(player_slot_count(), sizeof(bv_player));
 
   players_iterate(pplayer) {
     save_vision[player_index(pplayer)] = pplayer->server.really_gives_vision;
@@ -1586,6 +1590,7 @@ void give_shared_vision(struct player *pfrom, struct player *pto)
   if (S_S_RUNNING == server_state()) {
     send_player_info_c(pfrom, NULL);
   }
+  free(save_vision);
 }
 
 /**********************************************************************//**
@@ -1593,7 +1598,8 @@ void give_shared_vision(struct player *pfrom, struct player *pto)
 **************************************************************************/
 void remove_shared_vision(struct player *pfrom, struct player *pto)
 {
-  bv_player save_vision[player_slot_count()];
+  //bv_player save_vision[player_slot_count()];
+  bv_player *save_vision;
 
   fc_assert_ret(pfrom != pto);
   if (!gives_shared_vision(pfrom, pto)) {
@@ -1602,6 +1608,7 @@ void remove_shared_vision(struct player *pfrom, struct player *pto)
               player_name(pfrom), player_name(pto));
     return;
   }
+  save_vision = hh_calloc(player_slot_count(), sizeof(bv_player));
 
   players_iterate(pplayer) {
     save_vision[player_index(pplayer)] = pplayer->server.really_gives_vision;
@@ -1639,6 +1646,7 @@ void remove_shared_vision(struct player *pfrom, struct player *pto)
   if (S_S_RUNNING == server_state()) {
     send_player_info_c(pfrom, NULL);
   }
+  free(save_vision);
 }
 
 /**********************************************************************//**
@@ -1765,7 +1773,7 @@ static void check_units_single_tile(struct tile *ptile)
         wipe_unit(punit, ULR_NONNATIVE_TERR, NULL);
       }
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**

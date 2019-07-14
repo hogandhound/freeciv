@@ -1195,7 +1195,8 @@ static void remove_tiny_islands(void)
 **************************************************************************/
 static void print_mapgen_map(void)
 {
-  int terrain_counts[terrain_count()];
+  //int terrain_counts[terrain_count()];
+  int *terrain_counts = hh_calloc(terrain_count(), sizeof(int));
   int total = 0, ocean = 0;
 
   terrain_type_iterate(pterrain) {
@@ -1239,6 +1240,7 @@ static void print_mapgen_map(void)
                   / (total - ocean));
     }
   } terrain_type_iterate_end;
+  free(terrain_counts);
 }
 
 /**********************************************************************//**
@@ -3530,8 +3532,10 @@ static bool map_generate_fair_islands(void)
     if (wld.map.server.team_placement != TEAM_PLACEMENT_DISABLED
         && team_players_num > 0) {
       /* Do team placement. */
-      struct iter_index outwards_indices[wld.map.num_iterate_outwards_indices];
-      int start_x[teams_num], start_y[teams_num];
+      //struct iter_index outwards_indices[wld.map.num_iterate_outwards_indices];
+      //int start_x[teams_num], start_y[teams_num];
+      struct iter_index *outwards_indices = hh_calloc(wld.map.num_iterate_outwards_indices, sizeof(struct iter_index));
+      int *start_x = hh_calloc(teams_num, sizeof(int)), *start_y = hh_calloc(teams_num, sizeof(int));
       int dx = 0, dy = 0;
       int j, k;
 
@@ -3615,6 +3619,9 @@ static bool map_generate_fair_islands(void)
       } teams_iterate_end;
 
       fc_assert(!done || i == team_players_num);
+      free(outwards_indices);
+      free(start_x);
+      free(start_y);
     }
 
     if (done) {

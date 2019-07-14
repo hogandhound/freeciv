@@ -799,7 +799,7 @@ pft_fill_unit_default_parameter(struct pf_parameter *parameter,
   BV_CLR_ALL(parameter->cargo_types);
   unit_cargo_iterate(punit, pcargo) {
     BV_SET(parameter->cargo_types, utype_index(unit_type_get(pcargo)));
-  } unit_cargo_iterate_end;
+  } unit_cargo_iterate_end(pcargo);
   parameter->owner = unit_owner(punit);
 
   parameter->omniscience = FALSE;

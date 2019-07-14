@@ -150,10 +150,11 @@ serialize_hash(const struct attribute_hash *hash,
    * } body[entries];
    */
   const size_t entries = attribute_hash_size(hash);
-  int total_length, value_lengths[entries];
+  int total_length;// , value_lengths[entries];
   void *result;
   struct raw_data_out dout;
   int i;
+  int *value_lengths = hh_malloc(entries * sizeof(int));
 
   /*
    * Step 1: loop through all keys and fill value_lengths and calculate
@@ -172,7 +173,7 @@ serialize_hash(const struct attribute_hash *hash,
 
     total_length += value_lengths[i];
     i++;
-  } attribute_hash_values_iterate_end;
+  } attribute_hash_values_iterate_end(pvalue);
 
   /*
    * Step 2: allocate memory.
@@ -218,6 +219,7 @@ serialize_hash(const struct attribute_hash *hash,
   log_attribute("attribute.c serialize_hash() "
                 "serialized %lu entries in %lu bytes",
                 (long unsigned) entries, (long unsigned) total_length);
+  free(value_lengths);
   return A_SERIAL_OK;
 }
 

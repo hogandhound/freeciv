@@ -1023,13 +1023,15 @@ static void init_specialist_lattice_nodes(struct tile_type_vector *lattice,
 static void top_sort_lattice(struct tile_type_vector *lattice)
 {
   int i;
-  bool marked[lattice->size];
-  bool will_mark[lattice->size];
+  //bool marked[lattice->size];
+  //bool will_mark[lattice->size];
+  bool *marked = hh_calloc(lattice->size,sizeof(bool));
+  bool *will_mark = hh_calloc(lattice->size, sizeof(bool));
   struct tile_type_vector vectors[2];
   struct tile_type_vector *current, *next;
 
-  memset(marked, 0, sizeof(marked));
-  memset(will_mark, 0, sizeof(will_mark));
+  //memset(marked, 0, sizeof(marked));
+  //memset(will_mark, 0, sizeof(will_mark));
 
   tile_type_vector_init(&vectors[0]);
   tile_type_vector_init(&vectors[1]);
@@ -1099,6 +1101,8 @@ static void top_sort_lattice(struct tile_type_vector *lattice)
 
   tile_type_vector_free(&vectors[0]);
   tile_type_vector_free(&vectors[1]);
+  free(marked);
+  free(will_mark);
 }
 
 /************************************************************************//**

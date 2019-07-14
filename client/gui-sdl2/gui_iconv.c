@@ -28,7 +28,7 @@
 #endif
 
 #include <errno.h>
-#include <iconv.h>
+//#include <iconv.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -92,9 +92,9 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
   const char *pStart = pFromString;  
   size_t length = strlen(pFromString) + 1;
   Uint16 *pResult = pToUniString;
-  iconv_t cd = iconv_open(pTocode, pFromcode);
+  SDL_iconv_t cd = SDL_iconv_open(pTocode, pFromcode);
 
-  if (cd == (iconv_t) (-1)) {
+  if (cd == (SDL_iconv_t) (-1)) {
     if (errno != EINVAL) {
       return pToUniString;
     }
@@ -106,7 +106,7 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
     pResult = fc_calloc(1, ulength);
   }
 
-  iconv(cd, NULL, NULL, NULL, NULL); /* return to the initial state */
+  SDL_iconv(cd, NULL, NULL, NULL, NULL); /* return to the initial state */
 
   /* Do the conversion for real. */
   {
@@ -117,7 +117,7 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
 
     while (Insize > 0 && Outsize > 0) {
       size_t Res =
-        iconv(cd, (ICONV_CONST char **) &pInptr, &Insize, &pOutptr, &Outsize);
+          SDL_iconv(cd, (ICONV_CONST char **) &pInptr, &Insize, &pOutptr, &Outsize);
 
       if (Res == (size_t) (-1)) {
         if (errno == EINVAL) {
@@ -125,7 +125,7 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
         } else {
           int saved_errno = errno;
 
-          iconv_close(cd);
+          SDL_iconv_close(cd);
           errno = saved_errno;
           if (!pToUniString) {
             FC_FREE(pResult);
@@ -136,12 +136,12 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
     }
 
     {
-      size_t Res = iconv(cd, NULL, NULL, &pOutptr, &Outsize);
+      size_t Res = SDL_iconv(cd, NULL, NULL, &pOutptr, &Outsize);
 
       if (Res == (size_t) (-1)) {
         int saved_errno = errno;
 
-        iconv_close(cd);
+        SDL_iconv_close(cd);
         errno = saved_errno;
         if (!pToUniString) {
           FC_FREE(pResult);
@@ -151,7 +151,7 @@ Uint16 *convertcopy_to_utf16(Uint16 *pToUniString, size_t ulength,
     }
   }
 
-  iconv_close(cd);
+  SDL_iconv_close(cd);
 
   return (Uint16 *) pResult;
 }
@@ -173,7 +173,7 @@ char *convertcopy_to_chars(char *pToString, size_t length,
   const char *pStart = (char *) pFromUniString;
   size_t ulength = (unistrlen(pFromUniString) + 1) * 2;
   char *pResult;
-  iconv_t cd;
+  SDL_iconv_t cd;
 
   /* ===== */
 
@@ -181,8 +181,8 @@ char *convertcopy_to_chars(char *pToString, size_t length,
     return pToString;
   }
 
-  cd = iconv_open(pTocode, pFromcode);
-  if (cd == (iconv_t) (-1)) {
+  cd = SDL_iconv_open(pTocode, pFromcode);
+  if (cd == (SDL_iconv_t) (-1)) {
     if (errno != EINVAL) {
       return pToString;
     }
@@ -195,7 +195,7 @@ char *convertcopy_to_chars(char *pToString, size_t length,
     pResult = fc_calloc(1, length);
   }
 
-  iconv(cd, NULL, NULL, NULL, NULL); /* return to the initial state */
+  SDL_iconv(cd, NULL, NULL, NULL, NULL); /* return to the initial state */
 
   /* Do the conversion for real. */
   {
@@ -206,7 +206,7 @@ char *convertcopy_to_chars(char *pToString, size_t length,
 
     while (Insize > 0 && Outsize > 0) {
       size_t Res =
-        iconv(cd, (ICONV_CONST char **) &pInptr, &Insize, &pOutptr, &Outsize);
+          SDL_iconv(cd, (ICONV_CONST char **) &pInptr, &Insize, &pOutptr, &Outsize);
 
       if (Res == (size_t) (-1)) {
         log_error("iconv() error: %s", fc_strerror(fc_get_errno()));
@@ -215,7 +215,7 @@ char *convertcopy_to_chars(char *pToString, size_t length,
         } else {
           int saved_errno = errno;
 
-          iconv_close(cd);
+          SDL_iconv_close(cd);
           errno = saved_errno;
           if (!pToString) {
             FC_FREE(pResult);
@@ -226,12 +226,12 @@ char *convertcopy_to_chars(char *pToString, size_t length,
     }
 
     {
-      size_t Res = iconv(cd, NULL, NULL, &pOutptr, &Outsize);
+      size_t Res = SDL_iconv(cd, NULL, NULL, &pOutptr, &Outsize);
 
       if (Res == (size_t) (-1)) {
         int saved_errno = errno;
 
-        iconv_close(cd);
+        SDL_iconv_close(cd);
         errno = saved_errno;
         if (!pToString) {
           FC_FREE(pResult);
@@ -241,7 +241,7 @@ char *convertcopy_to_chars(char *pToString, size_t length,
     }
   }
 
-  iconv_close(cd);
+  SDL_iconv_close(cd);
 
   return pResult;
 }

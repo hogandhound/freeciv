@@ -2431,8 +2431,8 @@ void popup_government_dialog(void)
       j++;
 
     }
-  } governments_iterate_end;
-
+  } governments_iterate_end(pGov);
+  
   pGov_Dlg->pBeginWidgetList = pGov_Button;
 
   max_w += adj_size(10);
@@ -3009,7 +3009,7 @@ static int get_playable_nation_count(void)
     if (pnation->is_playable && !pnation->player
         && is_nation_pickable(pnation))
       playable_nation_count++;
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   return playable_nation_count;
 }
@@ -3131,7 +3131,7 @@ void popup_races_dialog(struct player *pplayer)
       set_wflag(pWidget, WF_HIDDEN);
     }
 
-  } nations_iterate_end;
+  } nations_iterate_end(pNation);
 
   FREESURFACE(pMain_Bg);
 
@@ -3509,7 +3509,7 @@ void races_toggles_set_sensitive()
         change = TRUE;
       }
     }
-  } nations_iterate_end;
+  } nations_iterate_end(nation);
 
   if (change) {
     do {

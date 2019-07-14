@@ -1,4 +1,4 @@
-/***********************************************************************
+/********************************************************************** 
  Freeciv - Copyright (C) 2004 - The Freeciv Project
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 #include <fc_config.h>
 #endif
 
-/* utility */
 #include "log.h"                /* fc_assert */
 
 #include "distribute.h"
+#include "mem.h"
 
-/************************************************************************//**
+/****************************************************************************
   Distribute "number" elements into "groups" groups with ratios given by
   the elements in "ratios".  The resulting division is put into the "result"
   array.
@@ -33,8 +33,11 @@
 ****************************************************************************/
 void distribute(int number, int groups, int *ratios, int *result)
 {
-  int i, sum = 0, rest[groups], max_groups[groups], max_count, max;
-#ifdef FREECIV_DEBUG
+  //int i, sum = 0, rest[groups], max_groups[groups], max_count, max;
+	int i, sum = 0, *rest, *max_groups, max_count, max;
+	rest = (int*)hh_calloc(groups, sizeof(int));
+	max_groups = (int*)hh_calloc(groups, sizeof(int));
+#ifdef DEBUG
   const int original_number = number;
 #endif
 
@@ -110,12 +113,14 @@ void distribute(int number, int groups, int *ratios, int *result)
     }
   }
 
-#ifdef FREECIV_DEBUG
+  free(rest);
+  free(max_groups);
+#ifdef DEBUG
   number = original_number;
   for (i = 0; i < groups; i++) {
     fc_assert(result[i] >= 0);
     number -= result[i];
   }
   fc_assert(number == 0);
-#endif /* FREECIV_DEBUG */
+#endif /* DEBUG */
 }

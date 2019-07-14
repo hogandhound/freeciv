@@ -24,7 +24,7 @@ extern "C" {
   See also mem.h, netintf.h, rand.h, and see support.c for more comments.
 ***********************************************************************/
 
-#include <freeciv_config.h>
+#include <freeciv_config.h.in>
 
 #include <stdarg.h>
 #include <stdio.h>

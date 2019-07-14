@@ -1468,6 +1468,13 @@ struct client_option {
 
 #define CLIENT_OPTION(poption) ((struct client_option *) (poption))
 
+
+/* Beginning of C99 structure initializer */
+#define INIT_BRACE_BEGIN {
+
+/* End of C99 structure initializer */
+#define INIT_BRACE_END }
+
 /*
  * Generate a client option of type OT_BOOLEAN.
  *

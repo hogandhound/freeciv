@@ -472,8 +472,10 @@ const char *city_name_suggestion(struct player *pplayer, struct tile *ptile)
    * Note that nations aren't removed from the queue after they're processed.
    * New nations are just added onto the end. */
   {
-    struct nation_type *nation_list[nation_count()];
-    bool nations_selected[nation_count()];
+    //struct nation_type *nation_list[nation_count()];
+    //bool nations_selected[nation_count()];
+    struct nation_type **nation_list= hh_calloc(nation_count(), sizeof(struct nation_type*));
+    bool *nations_selected = hh_calloc(nation_count(), sizeof(bool));
     int queue_size = 1, i = 0, idx;
 
     memset(nations_selected, 0, sizeof(nations_selected));
@@ -496,6 +498,8 @@ const char *city_name_suggestion(struct player *pplayer, struct tile *ptile)
           name = search_for_city_name(ptile, nation_cities(pnation), pplayer);
 
           if (NULL != name) {
+              free(nation_list);
+              free(nations_selected);
             return name;
           }
         }
@@ -532,8 +536,10 @@ const char *city_name_suggestion(struct player *pplayer, struct tile *ptile)
           queue_size++;
           log_debug("Misc nation %s.", nation_rule_name(n));
         }
-      } allowed_nations_iterate_end;
+      } allowed_nations_iterate_end(n);
     }
+    free(nation_list);
+    free(nations_selected);
   }
 
   /* Not found in rulesets, make a default name. */
@@ -769,7 +775,7 @@ void transfer_city_units(struct player *pplayer, struct player *pvictim,
         /* the owner of vunit is allied to pvictim but not to pplayer */
         bounce_unit(vunit, verbose);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(vunit);
   }
 
   if (!city_exist(saved_id)) {
@@ -819,7 +825,7 @@ void transfer_city_units(struct player *pplayer, struct player *pvictim,
       }
       wipe_unit(vunit, ULR_CITY_LOST, NULL);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(vunit);
 
 #ifdef FREECIV_DEBUG
   unit_list_iterate(pcity->units_supported, punit) {
@@ -1002,7 +1008,7 @@ static void reestablish_city_trade_routes(struct city *pcity)
     reality_check_city(city_owner(pcity), partner->tile);
     update_dumb_city(city_owner(pcity), partner);
     send_city_info(city_owner(pcity), partner);
-  } trade_routes_iterate_safe_end;
+  } trade_routes_iterate_safe_end(proute);
 }
 
 /************************************************************************//**
@@ -1660,7 +1666,7 @@ void remove_city(struct city *pcity)
         && !punit->server.dying) {
       transfer_unit(punit, new_home_city, TRUE, TRUE);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   /* make sure ships are not left on land when city is removed. */
   unit_list_iterate_safe(pcenter->units, punit) {
@@ -1699,7 +1705,7 @@ void remove_city(struct city *pcity)
                     unit_tile_link(punit));
       wipe_unit(punit, ULR_CITY_LOST, NULL);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   process_queue = tile_list_new();
   dbv_init(&tile_processed, map_num_tiles());
@@ -1733,7 +1739,7 @@ void remove_city(struct city *pcity)
                           city_link(other_city));
             wipe_unit(punit, ULR_CITY_LOST, NULL);
           }
-        } unit_list_iterate_safe_end;
+        } unit_list_iterate_safe_end(punit);
       } else {
         dbv_set(&tile_processed, tile_index(piter));
       }
@@ -1751,7 +1757,7 @@ void remove_city(struct city *pcity)
   /* Any remaining supported units are destroyed */
   unit_list_iterate_safe(pcity->units_supported, punit) {
     wipe_unit(punit, ULR_CITY_LOST, NULL);
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   if (!city_exist(id)) {
     /* Wiping supported units caused city to disappear. */
@@ -1764,7 +1770,7 @@ void remove_city(struct city *pcity)
 
     FC_FREE(proute);
     FC_FREE(pback);
-  } trade_routes_iterate_safe_end;
+  } trade_routes_iterate_safe_end(proute);
 
   map_clear_border(pcenter);
   city_workers_queue_remove(pcity);

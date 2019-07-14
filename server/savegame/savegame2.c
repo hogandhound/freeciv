@@ -153,9 +153,10 @@ extern bool sg_success;
  * Example:
  *   SAVE_MAP_CHAR(ptile, terrain2char(ptile->terrain), file, "map.t%04d");
  */
+//char _line[wld.map.xsize + 1];                                            
 #define SAVE_MAP_CHAR(ptile, GET_XY_CHAR, secfile, secpath, ...)            \
 {                                                                           \
-  char _line[wld.map.xsize + 1];                                            \
+  char *_line = hh_malloc(wld.map.xsize + 1);                                            \
   int _nat_x, _nat_y;                                                       \
                                                                             \
   for (_nat_y = 0; _nat_y < wld.map.ysize; _nat_y++) {                      \
@@ -171,6 +172,7 @@ extern bool sg_success;
     _line[wld.map.xsize] = '\0';                                            \
     secfile_insert_str(secfile, _line, secpath, ## __VA_ARGS__, _nat_y);    \
   }                                                                         \
+  free(_line); \
 }
 
 /*
@@ -1269,11 +1271,11 @@ static void sg_load_savefile(struct loaddata *loading)
     loading->special.order = fc_calloc(nmod,
                                        sizeof(*loading->special.order));
     for (j = 0; j < loading->special.size; j++) {
-      if (!strcasecmp("Road", modname[j])) {
+      if (!fc_strcasecmp("Road", modname[j])) {
         loading->special.order[j] = S_OLD_ROAD;
-      } else if (!strcasecmp("Railroad", modname[j])) {
+      } else if (!fc_strcasecmp("Railroad", modname[j])) {
         loading->special.order[j] = S_OLD_RAILROAD;
-      } else if (!strcasecmp("River", modname[j])) {
+      } else if (!fc_strcasecmp("River", modname[j])) {
         loading->special.order[j] = S_OLD_RIVER;
       } else {
         loading->special.order[j] = special_by_rule_name(modname[j]);
@@ -2091,7 +2093,9 @@ static void sg_load_map_startpos(struct loaddata *loading)
                                       "map.startpos%d.nations", i);
     if (NULL != nation_names && '\0' != nation_names[0]) {
       const size_t size = strlen(nation_names) + 1;
-      char buf[size], *start, *end;
+      //char buf[size];
+      char *buf = hh_malloc(size);
+      char *start, *end;
 
       memcpy(buf, nation_names, size);
       for (start = buf - 1; NULL != start; start = end) {
@@ -2111,6 +2115,7 @@ static void sg_load_map_startpos(struct loaddata *loading)
           log_verbose("Missing nation \"%s\".", start);
         }
       }
+      free(buf);
     }
   }
 
@@ -2500,8 +2505,10 @@ static void sg_load_players_basic(struct loaddata *loading)
    * handles this ... */
   if (secfile_lookup_int_default(loading->file, -1,
                                  "players.shuffled_player_%d", 0) >= 0) {
-    int shuffled_players[player_slot_count()];
-    bool shuffled_player_set[player_slot_count()];
+    //int shuffled_players[player_slot_count()];
+    //bool shuffled_player_set[player_slot_count()];
+    int *shuffled_players= hh_calloc(player_slot_count(),sizeof(int));
+    bool *shuffled_player_set= hh_calloc(player_slot_count(),sizeof(bool));
 
     player_slots_iterate(pslot) {
       int plrid = player_slot_index(pslot);
@@ -2564,6 +2571,8 @@ static void sg_load_players_basic(struct loaddata *loading)
       /* Set shuffle list from savegame. */
       set_shuffled_players(shuffled_players);
     }
+    free(shuffled_player);
+    free(shuffled_player_set);
   }
 
   if (!shuffle_loaded) {
@@ -4783,7 +4792,7 @@ static void sg_load_researches(struct loaddata *loading)
   /* Initialize all researches. */
   researches_iterate(pinitres) {
     init_tech(pinitres, FALSE);
-  } researches_iterate_end;
+  } researches_iterate_end(pinitres);
 
   /* May be unsaved (e.g. scenario case). */
   count = secfile_lookup_int_default(loading->file, 0, "research.count");
@@ -4851,7 +4860,7 @@ static void sg_load_researches(struct loaddata *loading)
    * researches have been loaded */
   researches_iterate(pupres) {
     research_update(pupres);
-  } researches_iterate_end;
+  } researches_iterate_end(pupres);
 }
 
 /* =======================================================================
@@ -5059,7 +5068,7 @@ static void sg_load_sanitycheck(struct loaddata *loading)
                TILE_XY(unit_tile(punit)));
         bounce_unit(punit, TRUE);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   } players_iterate_end;
 
   /* Fix stacking issues.  We don't rely on the savegame preserving
@@ -5134,7 +5143,7 @@ static void sg_load_sanitycheck(struct loaddata *loading)
              research_name_translation(presearch));
       presearch->tech_goal = A_UNSET;
     }
-  } researches_iterate_end;
+  } researches_iterate_end(presearch);
 
   if (0 == strlen(server.game_identifier)
       || !is_base64url(server.game_identifier)) {

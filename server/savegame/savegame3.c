@@ -163,9 +163,10 @@ extern bool sg_success;
  * Example:
  *   SAVE_MAP_CHAR(ptile, terrain2char(ptile->terrain), file, "map.t%04d");
  */
+//char _line[wld.map.xsize + 1];                                            
 #define SAVE_MAP_CHAR(ptile, GET_XY_CHAR, secfile, secpath, ...)            \
 {                                                                           \
-  char _line[wld.map.xsize + 1];                                            \
+  char* _line = malloc(wld.map.xsize + 1);                                            \
   int _nat_x, _nat_y;                                                       \
                                                                             \
   for (_nat_y = 0; _nat_y < wld.map.ysize; _nat_y++) {                      \
@@ -181,6 +182,7 @@ extern bool sg_success;
     _line[wld.map.xsize] = '\0';                                            \
     secfile_insert_str(secfile, _line, secpath, ## __VA_ARGS__, _nat_y);    \
   }                                                                         \
+  free(_line); \
 }
 
 /*
@@ -1643,7 +1645,8 @@ static void sg_save_savefile(struct savedata *saving)
   secfile_insert_int(saving->file, improvement_count(),
                      "savefile.improvement_size");
   if (improvement_count() > 0) {
-    const char* buf[improvement_count()];
+    //const char* buf[improvement_count()];
+    const char** buf = hh_calloc(improvement_count(),sizeof(char*));
 
     improvement_iterate(pimprove) {
       buf[improvement_index(pimprove)] = improvement_rule_name(pimprove);
@@ -1651,6 +1654,7 @@ static void sg_save_savefile(struct savedata *saving)
 
     secfile_insert_str_vec(saving->file, buf, improvement_count(),
                            "savefile.improvement_vector");
+    free(buf);
   }
 
   /* Save technology order in savegame, so we are not dependent on ruleset
@@ -1659,7 +1663,8 @@ static void sg_save_savefile(struct savedata *saving)
   secfile_insert_int(saving->file, game.control.num_tech_types,
                      "savefile.technology_size");
   if (game.control.num_tech_types > 0) {
-    const char* buf[game.control.num_tech_types];
+    //const char* buf[game.control.num_tech_types];
+    const char** buf = hh_calloc(game.control.num_tech_types,sizeof(char*));
 
     buf[A_NONE] = "A_NONE";
     advance_iterate(A_FIRST, a) {
@@ -2081,7 +2086,7 @@ static void sg_save_ruledata(struct savedata *saving)
                         "%s.name", path);
      secfile_insert_int(saving->file, pgov->changed_to_times,
                         "%s.changes", path);
-  } governments_iterate_end;
+  } governments_iterate_end(pgov);
 }
 
 /************************************************************************//**
@@ -2090,7 +2095,8 @@ static void sg_save_ruledata(struct savedata *saving)
 static void sg_save_game(struct savedata *saving)
 {
   enum server_states srv_state;
-  char global_advances[game.control.num_tech_types + 1];
+  //char global_advances[game.control.num_tech_types + 1]
+  char *global_advances = hh_malloc(game.control.num_tech_types + 1);
   int i;
 
   /* Check status and return if not OK (sg_success != TRUE). */
@@ -2178,6 +2184,7 @@ static void sg_save_game(struct savedata *saving)
   }
   global_advances[i] = '\0';
   secfile_insert_str(saving->file, global_advances, "game.global_advances");
+  free(global_advances);
 
   if (!game_was_started()) {
     saving->save_players = FALSE;
@@ -2199,7 +2206,8 @@ static void sg_save_game(struct savedata *saving)
                       "game.save_players");
 
   if (srv_state != S_S_INITIAL) {
-    const char *ainames[ai_type_get_count()];
+    //const char *ainames[ai_type_get_count()];
+    const char **ainames = hh_calloc(ai_type_get_count(),sizeof(char*));
 
     i = 0;
     ai_type_iterate(ait) {
@@ -2209,6 +2217,7 @@ static void sg_save_game(struct savedata *saving)
 
     secfile_insert_str_vec(saving->file, ainames, i,
                            "game.ai_types");
+    free(ainames);
   }
 }
 
@@ -2659,7 +2668,7 @@ static void sg_save_map_tiles(struct savedata *saving)
 
   /* Save the terrain type. */
   SAVE_MAP_CHAR(ptile, terrain2char(ptile->terrain), saving->file,
-                "map.t%04d");
+                "map.t%04d", 0);
 
   /* Save special tile sprites. */
   whole_map_iterate(&(wld.map), ptile) {
@@ -2783,7 +2792,9 @@ static void sg_load_map_startpos(struct loaddata *loading)
                                       "map.startpos%d.nations", i);
     if (NULL != nation_names && '\0' != nation_names[0]) {
       const size_t size = strlen(nation_names) + 1;
-      char buf[size], *start, *end;
+      //char buf[size];
+      char *buf = hh_malloc(size);
+      char *start, *end;
 
       memcpy(buf, nation_names, size);
       for (start = buf - 1; NULL != start; start = end) {
@@ -2803,6 +2814,7 @@ static void sg_load_map_startpos(struct loaddata *loading)
           log_verbose("Missing nation \"%s\".", start);
         }
       }
+      free(buf);
     }
   }
 
@@ -2855,23 +2867,26 @@ static void sg_save_map_startpos(struct savedata *saving)
       secfile_insert_str(saving->file, "", "map.startpos%d.nations", i);
     } else {
       const struct nation_hash *nations = startpos_raw_nations(psp);
-      char nation_names[MAX_LEN_NAME * nation_hash_size(nations)];
+      //char nation_names[MAX_LEN_NAME * nation_hash_size(nations)];
+      size_t nationsLen = MAX_LEN_NAME * nation_hash_size(nations);
+      char *nation_names = hh_malloc(nationsLen);
 
       nation_names[0] = '\0';
       nation_hash_iterate(nations, pnation) {
         if ('\0' == nation_names[0]) {
           fc_strlcpy(nation_names, nation_rule_name(pnation),
-                     sizeof(nation_names));
+              nationsLen);
         } else {
-          cat_snprintf(nation_names, sizeof(nation_names),
+          cat_snprintf(nation_names, nationsLen,
                        "%c%s", SEPARATOR, nation_rule_name(pnation));
         }
       } nation_hash_iterate_end;
       secfile_insert_str(saving->file, nation_names,
                          "map.startpos%d.nations", i);
+      free(nation_names);
     }
     i++;
-  } map_startpos_iterate_end;
+  } map_startpos_iterate_end(psp);
 
   fc_assert(map_startpos_count() == i);
 }
@@ -2974,7 +2989,8 @@ static void sg_save_map_owner(struct savedata *saving)
 
   /* Store owner and ownership source as plain numbers. */
   for (y = 0; y < wld.map.ysize; y++) {
-    char line[wld.map.xsize * TOKEN_SIZE];
+    //char line[wld.map.xsize * TOKEN_SIZE];
+    char *line = hh_malloc(wld.map.xsize * TOKEN_SIZE);
 
     line[0] = '\0';
     for (x = 0; x < wld.map.xsize; x++) {
@@ -2993,10 +3009,12 @@ static void sg_save_map_owner(struct savedata *saving)
       }
     }
     secfile_insert_str(saving->file, line, "map.owner%04d", y);
+    free(line);
   }
 
   for (y = 0; y < wld.map.ysize; y++) {
-    char line[wld.map.xsize * TOKEN_SIZE];
+    //char line[wld.map.xsize * TOKEN_SIZE];
+    char *line = hh_malloc(wld.map.xsize * TOKEN_SIZE);
 
     line[0] = '\0';
     for (x = 0; x < wld.map.xsize; x++) {
@@ -3014,10 +3032,12 @@ static void sg_save_map_owner(struct savedata *saving)
       }
     }
     secfile_insert_str(saving->file, line, "map.source%04d", y);
+    free(line);
   }
 
   for (y = 0; y < wld.map.ysize; y++) {
-    char line[wld.map.xsize * TOKEN_SIZE];
+    //char line[wld.map.xsize * TOKEN_SIZE];
+    char *line = hh_malloc(wld.map.xsize * TOKEN_SIZE);
 
     line[0] = '\0';
     for (x = 0; x < wld.map.xsize; x++) {
@@ -3036,6 +3056,7 @@ static void sg_save_map_owner(struct savedata *saving)
       }
     }
     secfile_insert_str(saving->file, line, "map.eowner%04d", y);
+    free(line);
   }
 }
 
@@ -3100,7 +3121,8 @@ static void sg_save_map_worked(struct savedata *saving)
 
   /* additionally save the tiles worked by the cities */
   for (y = 0; y < wld.map.ysize; y++) {
-    char line[wld.map.xsize * TOKEN_SIZE];
+    //char line[wld.map.xsize * TOKEN_SIZE];
+    char *line = hh_malloc(wld.map.xsize * TOKEN_SIZE);
 
     line[0] = '\0';
     for (x = 0; x < wld.map.xsize; x++) {
@@ -3119,6 +3141,7 @@ static void sg_save_map_worked(struct savedata *saving)
       }
     }
     secfile_insert_str(saving->file, line, "map.worked%04d", y);
+    free(line);
   }
 }
 
@@ -3415,8 +3438,10 @@ static void sg_load_players_basic(struct loaddata *loading)
    * handles this ... */
   if (secfile_lookup_int_default(loading->file, -1,
                                  "players.shuffled_player_%d", 0) >= 0) {
-    int shuffled_players[player_slot_count()];
-    bool shuffled_player_set[player_slot_count()];
+    //int shuffled_players[player_slot_count()];
+    //bool shuffled_player_set[player_slot_count()];
+    int *shuffled_players = hh_calloc(player_slot_count(), sizeof(int));
+    bool *shuffled_player_set = hh_calloc(player_slot_count(), sizeof(bool));
 
     player_slots_iterate(pslot) {
       int plrid = player_slot_index(pslot);
@@ -5190,9 +5215,13 @@ static void sg_save_player_cities(struct savedata *saving,
                        "%s.rally_point_length", buf);
     if (pcity->rally_point.length) {
       int len = pcity->rally_point.length;
-      char orders[len + 1], dirs[len + 1], activities[len + 1];
-      char actions[len + 1];
-      int sub_targets[len];
+      //char orders[len + 1], dirs[len + 1], activities[len + 1];
+      //char actions[len + 1];
+      //int sub_targets[len];
+      char *orders = hh_malloc(len + 1), *dirs = hh_malloc(len + 1);
+      char *activities = hh_malloc(len + 1);
+      char *actions = hh_malloc(len + 1);
+      int *sub_targets = hh_malloc(len, sizeof(int));
 
       secfile_insert_bool(saving->file, pcity->rally_point.persistent,
                           "%s.rally_point_persistent", buf);
@@ -5245,6 +5274,12 @@ static void sg_save_player_cities(struct savedata *saving,
         secfile_insert_int(saving->file, -1, "%s.rally_point_sub_tgt_vec,%d",
                            buf, j);
       }
+
+      free(orders);
+      free(dirs);
+      free(activities);
+      free(actions);
+      free(sub_targets);
     } else {
       /* Put all the same fields into the savegame - otherwise the
        * registry code can't correctly use a tabular format and the
@@ -6139,10 +6174,14 @@ static void sg_save_player_units(struct savedata *saving,
 
     if (punit->has_orders) {
       int len = punit->orders.length;
-      char orders_buf[len + 1], dir_buf[len + 1];
-      char act_buf[len + 1];
-      char action_buf[len + 1];
-      int sub_tgt_vec[len];
+      //char orders_buf[len + 1], dir_buf[len + 1];
+      //char act_buf[len + 1];
+      //char action_buf[len + 1];
+      //int sub_tgt_vec[len];
+      char *orders_buf = malloc(len + 1), *dir_buf = malloc(len + 1);
+      char *act_buf = malloc(len + 1);
+      char *action_buf = malloc(len + 1);
+      int *sub_tgt_vec = malloc(len, sizeof(int));
 
       last_order = len;
 
@@ -6197,6 +6236,12 @@ static void sg_save_player_units(struct savedata *saving,
       for (j = last_order; j < longest_order; j++) {
         secfile_insert_int(saving->file, -1, "%s.sub_tgt_vec,%d", buf, j);
       }
+
+      free(orders_buf);
+      free(dir_buf);
+      free(act_buf);
+      free(sub_tgt_vec);
+      free(action_buf);
     } else {
 
       /* Put all the same fields into the savegame - otherwise the
@@ -6679,7 +6724,8 @@ static void sg_save_player_vision(struct savedata *saving,
     int x, y;
 
     for (y = 0; y < wld.map.ysize; y++) {
-      char line[wld.map.xsize * TOKEN_SIZE];
+      //char line[wld.map.xsize * TOKEN_SIZE];
+      char *line = malloc(wld.map.xsize * TOKEN_SIZE);
 
       line[0] = '\0';
       for (x = 0; x < wld.map.xsize; x++) {
@@ -6703,7 +6749,8 @@ static void sg_save_player_vision(struct savedata *saving,
     }
 
     for (y = 0; y < wld.map.ysize; y++) {
-      char line[wld.map.xsize * TOKEN_SIZE];
+      //char line[wld.map.xsize * TOKEN_SIZE];
+      char *line = malloc(wld.map.xsize * TOKEN_SIZE);
 
       line[0] = '\0';
       for (x = 0; x < wld.map.xsize; x++) {
@@ -6724,6 +6771,7 @@ static void sg_save_player_vision(struct savedata *saving,
       }
       secfile_insert_str(saving->file, line, "player%d.extras_owner%04d",
                          plrno, y);
+      free(line);
     }
   }
 
@@ -6833,7 +6881,7 @@ static void sg_load_researches(struct loaddata *loading)
   /* Initialize all researches. */
   researches_iterate(pinitres) {
     init_tech(pinitres, FALSE);
-  } researches_iterate_end;
+  } researches_iterate_end(pinitres);
 
   /* May be unsaved (e.g. scenario case). */
   count = secfile_lookup_int_default(loading->file, 0, "research.count");
@@ -6912,7 +6960,7 @@ static void sg_load_researches(struct loaddata *loading)
    * researches have been loaded */
   researches_iterate(pupres) {
     research_update(pupres);
-  } researches_iterate_end;
+  } researches_iterate_end(pupres);
 }
 
 /************************************************************************//**
@@ -6969,7 +7017,7 @@ static void sg_save_researches(struct savedata *saving)
       invs[game.control.num_tech_types] = '\0';
       secfile_insert_str(saving->file, invs, "research.r%d.done", i);
       i++;
-    } researches_iterate_end;
+    } researches_iterate_end(presearch);
     secfile_insert_int(saving->file, i, "research.count");
   }
 }
@@ -7262,7 +7310,7 @@ static void sg_load_sanitycheck(struct loaddata *loading)
                TILE_XY(unit_tile(punit)));
         bounce_unit(punit, TRUE);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   } players_iterate_end;
 
   /* Fix stacking issues.  We don't rely on the savegame preserving
@@ -7337,7 +7385,7 @@ static void sg_load_sanitycheck(struct loaddata *loading)
              research_name_translation(presearch));
       presearch->tech_goal = A_UNSET;
     }
-  } researches_iterate_end;
+  } researches_iterate_end(presearch);
 
   /* Check if some player has more than one of some UTYF_UNIQUE unit type */
   players_iterate(pplayer) {

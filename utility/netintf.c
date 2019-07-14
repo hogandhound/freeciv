@@ -297,7 +297,7 @@ void sockaddr_debug(union fc_sockaddr *addr, enum log_level lvl)
   Gets size of address to fc_sockaddr. IPv6/IPv4 must be selected before
   calling this.
 *************************************************************************/
-int sockaddr_size(union fc_sockaddr *addr)
+int fc_sockaddr_size(union fc_sockaddr *addr)
 {
 #ifdef FREECIV_MSWINDOWS
   return sizeof(*addr);

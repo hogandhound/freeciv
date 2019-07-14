@@ -17,7 +17,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "freeciv_config.h"
+#include "freeciv_config.h.in"
 
 #ifdef FREECIV_HAVE_LOCALE_H
 #include <locale.h>

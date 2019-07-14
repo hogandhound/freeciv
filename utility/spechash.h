@@ -716,7 +716,7 @@ SPECHASH_FOO(_hash_value_iter_init) (SPECHASH_ITER *iter,
 
 /* Balance for above: */ 
 #define HASH_ITERATE_END                                                    \
-  } genhash_iterate_end;
+  } genhash_iterate_end(MY_iter);
 
 #endif /* FC__SPECHASH_H */
 

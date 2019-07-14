@@ -74,6 +74,10 @@ static const char * const help_type_names[] = {
     TYPED_LIST_ITERATE(struct help_item, helplist, phelp)
 #define help_list_iterate_end  LIST_ITERATE_END
 
+#ifndef FREECIV_META_URL
+#define FREECIV_META_URL ""
+#endif
+
 static const struct help_list_link *help_nodes_iterator;
 static struct help_list *help_nodes;
 static bool help_nodes_init = FALSE;
@@ -516,7 +520,8 @@ static void insert_allows_single(struct universal *psource,
   struct strvec *conoreqs = strvec_new();
   struct astring coreqstr = ASTRING_INIT;
   struct astring conoreqstr = ASTRING_INIT;
-  char buf2[bufsz];
+  //char buf2[bufsz];
+  char *buf2 = malloc(bufsz);
 
   /* FIXME: show other data like range and survives. */
 
@@ -529,7 +534,7 @@ static void insert_allows_single(struct universal *psource,
          * also be required (or required to be absent). */
         requirement_vector_iterate(psubjreqs, coreq) {
           if (!coreq->quiet && !are_universals_equal(psource, &coreq->source)) {
-            universal_name_translation(&coreq->source, buf2, sizeof(buf2));
+            universal_name_translation(&coreq->source, buf2, bufsz);
             strvec_append(coreq->present ? coreqs : conoreqs, buf2);
           }
         } requirement_vector_iterate_end;
@@ -573,6 +578,7 @@ static void insert_allows_single(struct universal *psource,
   strvec_destroy(conoreqs);
   astr_free(&coreqstr);
   astr_free(&conoreqstr);
+  free(buf2);
 }
 
 /************************************************************************//**
@@ -612,7 +618,7 @@ static void insert_allows(struct universal *psource,
     insert_allows_single(psource, &pgov->reqs,
                          government_name_translation(pgov), govstrs,
                          buf, bufsz, prefix);
-  } governments_iterate_end;
+  } governments_iterate_end(pgov);
 
   improvement_iterate(pimprove) {
     static const char *const imprstrs[] = {
@@ -855,7 +861,7 @@ void boot_help_texts(void)
               pitem->topic = fc_strdup(name);
               pitem->text = fc_strdup("");
               help_list_append(category_nodes, pitem);
-            } governments_iterate_end;
+            } governments_iterate_end(gov);
             break;
           case HELP_IMPROVEMENT:
             improvement_iterate(pimprove) {
@@ -1038,7 +1044,7 @@ void boot_help_texts(void)
                 pitem->text = fc_strdup("");
                 help_list_append(category_nodes, pitem);
               }
-            } nations_iterate_end;
+            } nations_iterate_end(pnation);
             break;
 	  case HELP_MULTIPLIER:
             multipliers_iterate(pmul) {
@@ -1624,7 +1630,7 @@ char *helptext_building(char *buf, size_t bufsz, struct player *pplayer,
         break;
       }
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   if (improvement_has_flag(pimprove, IF_SAVE_SMALL_WONDER)) {
     cat_snprintf(buf, bufsz,
@@ -1794,7 +1800,8 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
    * combat bonus against this unit type. Doesn't handle complex cases like
    * when a unit type has multiple combat bonuses of the same kind. */
   combat_bonus_list_iterate(utype->bonuses, cbonus) {
-    const char *against[utype_count()];
+    //const char *against[utype_count()];
+    const char **against = hh_calloc(utype_count(), sizeof(char*));
     int targets = 0;
 
     if (cbonus->quiet) {
@@ -1854,6 +1861,7 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
 
       astr_free(&list);
     }
+    free(against);
   } combat_bonus_list_iterate_end;
 
   if (utype->need_improvement) {
@@ -1914,9 +1922,10 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
                        count),
                    nation_plural_translation(pnation), count);
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
   {
-    const char *types[utype_count()];
+    //const char *types[utype_count()];
+    const char **types = hh_calloc(utype_count(), sizeof(char*));
     int i = 0;
 
     unit_type_iterate(utype2) {
@@ -1935,6 +1944,7 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
                    astr_str(&list));
       astr_free(&list);
     }
+    free(types);
   }
   if (utype_has_flag(utype, UTYF_NOHOME)) {
     CATLSTR(buf, bufsz, _("* Never has a home city.\n"));
@@ -1965,7 +1975,8 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
                  utype->pop_cost);
   }
   if (0 < utype->transport_capacity) {
-    const char *classes[uclass_count()];
+    //const char *classes[uclass_count()];
+    const char **classes = hh_calloc(uclass_count(), sizeof(char*));
     int i = 0;
     struct astring list = ASTRING_INIT;
 
@@ -1975,6 +1986,7 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
       }
     } unit_class_iterate_end;
     astr_build_or_list(&list, classes, i);
+    free(classes);
 
     cat_snprintf(buf, bufsz,
                  /* TRANS: %s is a list of unit classes separated by "or". */
@@ -2074,7 +2086,8 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
 
     if (BV_ISSET_ANY(embarks)) {
       /* Build list of embark exceptions */
-      const char *eclasses[uclass_count()];
+      //const char *eclasses[uclass_count()];
+      const char **eclasses = hh_calloc(uclass_count(),sizeof(char *));
       int i = 0;
       struct astring elist = ASTRING_INIT;
 
@@ -2084,6 +2097,7 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
         }
       } unit_class_iterate_end;
       astr_build_or_list(&elist, eclasses, i);
+      free(eclasses);
       if (BV_ARE_EQUAL(embarks, disembarks)) {
         /* A common case: the list of disembark exceptions is identical */
         cat_snprintf(buf, bufsz,
@@ -2103,7 +2117,8 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
     }
     if (BV_ISSET_ANY(disembarks) && !BV_ARE_EQUAL(embarks, disembarks)) {
       /* Build list of disembark exceptions (if different from embarking) */
-      const char *dclasses[uclass_count()];
+      //const char *dclasses[uclass_count()];
+      const char **dclasses = hh_calloc(uclass_count(), sizeof(char *));
       int i = 0;
       struct astring dlist = ASTRING_INIT;
 
@@ -2113,6 +2128,7 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
         }
       } unit_class_iterate_end;
       astr_build_or_list(&dlist, dclasses, i);
+      free(dclasses);
       cat_snprintf(buf, bufsz,
                    /* TRANS: %s is a list of unit classes separated
                     * by "or". */
@@ -2322,7 +2338,8 @@ char *helptext_unit(char *buf, size_t bufsz, struct player *pplayer,
 
   fuel = utype_fuel(utype);
   if (fuel > 0) {
-    const char *types[utype_count()];
+    //const char *types[utype_count()];
+    const char **types = calloc(utype_count(), sizeof(char*));
     int i = 0;
 
     unit_type_iterate(transport) {
@@ -2861,7 +2878,7 @@ void helptext_advance(char *buf, size_t bufsz, struct player *pplayer,
         break;
       }
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   /* Explain the effects of root_reqs. */
   {
@@ -2889,9 +2906,9 @@ void helptext_advance(char *buf, size_t bufsz, struct player *pplayer,
         /* FIXME this is quite inefficient */
         advance_root_req_iterate(proot, prootroot) {
           BV_SET(rootsofroots, advance_number(prootroot));
-        } advance_root_req_iterate_end;
+        } advance_root_req_iterate_end(prootroot);
       }
-    } advance_root_req_iterate_end;
+    } advance_root_req_iterate_end(proot);
 
     /* Filter out all but the direct root reqs. */
     BV_CLR_ALL_FROM(roots, rootsofroots);
@@ -3015,7 +3032,8 @@ void helptext_terrain(char *buf, size_t bufsz, struct player *pplayer,
     CATLSTR(buf, bufsz, "\n");
   }
   {
-    const char *classes[uclass_count()];
+    //const char *classes[uclass_count()];
+    const char **classes = calloc(uclass_count(), sizeof(char*));
     int i = 0;
 
     unit_class_iterate(uclass) {
@@ -3507,7 +3525,8 @@ void helptext_extra(char *buf, size_t bufsz, struct player *pplayer,
   }
 
   {
-    const char *classes[uclass_count()];
+    //const char *classes[uclass_count()];
+    const char **classes = hh_calloc(uclass_count(), sizeof(char*));
     int i = 0;
 
     unit_class_iterate(uclass) {
@@ -3555,6 +3574,7 @@ void helptext_extra(char *buf, size_t bufsz, struct player *pplayer,
                      pextra->defense_bonus);
       }
     }
+    free(classes);
   }
 
   if (proad != NULL && road_provides_move_bonus(proad)) {

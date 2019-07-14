@@ -172,11 +172,14 @@ int research_pretty_name(const struct research *presearch, char *buf,
     const struct team *pteam = team_by_number(research_number(presearch));
 
     if (1 != player_list_size(team_members(pteam))) {
-      char buf2[buf_len];
+      //char buf2[buf_len];
+	  char *buf2 = hh_malloc(buf_len);
 
-      team_pretty_name(pteam, buf2, sizeof(buf2));
+      team_pretty_name(pteam, buf2, buf_len);
       /* TRANS: e.g. "members of team 1", or even "members of team Red". */
-      return fc_snprintf(buf, buf_len, _("members of %s"), buf2);
+      int ret = fc_snprintf(buf, buf_len, _("members of %s"), buf2);
+	  free(buf);
+	  return ret;
     } else {
       pplayer = player_list_front(team_members(pteam));
     }
@@ -371,7 +374,7 @@ research_allowed(const struct research *presearch,
        * researched creates unnecessary bureaucracy. */
       return TRUE;
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
 
   return FALSE;
 }
@@ -404,7 +407,8 @@ static bool research_get_reachable_rreqs(const struct research *presearch,
                                          Tech_type_id tech)
 {
   bv_techs done;
-  Tech_type_id techs[game.control.num_tech_types];
+  //Tech_type_id techs[game.control.num_tech_types];
+  Tech_type_id* techs = hh_calloc(game.control.num_tech_types, sizeof(Tech_type_id));
   enum tech_req req;
   int techs_num;
   int i;
@@ -428,6 +432,7 @@ static bool research_get_reachable_rreqs(const struct research *presearch,
       /* It will always be illegal to start researching this tech because
        * of unchanging requirements. Since it isn't already known and can't
        * be researched it must be unreachable. */
+      free(techs);
       return FALSE;
     }
 
@@ -447,6 +452,7 @@ static bool research_get_reachable_rreqs(const struct research *presearch,
     }
   }
 
+  free(techs);
   return TRUE;
 }
 
@@ -480,7 +486,7 @@ static bool research_get_reachable(const struct research *presearch,
           }
         }
       }
-    } advance_root_req_iterate_end;
+    } advance_root_req_iterate_end(proot);
   }
 
   /* Check research reqs reachability. */
@@ -505,7 +511,7 @@ static bool research_get_root_reqs_known(const struct research *presearch,
     if (presearch->inventions[advance_number(proot)].state != TECH_KNOWN) {
       return FALSE;
     }
-  } advance_root_req_iterate_end;
+  } advance_root_req_iterate_end(proot);
 
   return TRUE;
 }
@@ -576,7 +582,7 @@ void research_update(struct research *presearch)
        * research_total_bulbs_required() call when
        * game.info.game.info.tech_cost_style is TECH_COST_CIV1CIV2. */
       presearch->techs_researched++;
-    } advance_req_iterate_end;
+    } advance_req_iterate_end(preq);
     presearch->techs_researched = techs_researched;
   } advance_index_iterate_end;
 
@@ -686,7 +692,7 @@ bool research_invention_reachable(const struct research *presearch,
       if (research_iter->inventions[tech].reachable) {
         return TRUE;
       }
-    } researches_iterate_end;
+    } researches_iterate_end(research_iter);
 
     return FALSE;
   }
@@ -716,7 +722,7 @@ bool research_invention_gettable(const struct research *presearch,
           : research_iter->inventions[tech].state == TECH_PREREQS_KNOWN) {
         return TRUE;
       }
-    } researches_iterate_end;
+    } researches_iterate_end(research_iter);
 
     return FALSE;
   }
@@ -744,7 +750,7 @@ Tech_type_id research_goal_step(const struct research *presearch,
     case TECH_UNKNOWN:
        break;
     };
-  } advance_req_iterate_end;
+  } advance_req_iterate_end(preq);
   return A_UNSET;
 }
 
@@ -795,7 +801,7 @@ int research_goal_bulbs_required(const struct research *presearch,
 
     advance_req_iterate(pgoal, preq) {
       bulbs_required += preq->cost;
-    } advance_req_iterate_end;
+    } advance_req_iterate_end(preq);
     return bulbs_required;
   }
 }
@@ -822,7 +828,7 @@ bool research_goal_tech_req(const struct research *presearch,
       if (preq == ptech) {
         return TRUE;
       }
-    } advance_req_iterate_end;
+    } advance_req_iterate_end(preq);
     return FALSE;
   }
 }
@@ -921,7 +927,7 @@ int research_total_bulbs_required(const struct research *presearch,
     members++;
     total_cost += (base_cost
                    * get_player_bonus(pplayer, EFT_TECH_COST_FACTOR));
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
   if (0 == members) {
     /* There is no more alive players for this research, no need to apply
      * complicated modifiers. */
@@ -956,7 +962,7 @@ int research_total_bulbs_required(const struct research *presearch,
             players_with_tech_and_embassy++;
             break;
           }
-        } research_players_iterate_end;
+        } research_players_iterate_end(pplayer);
       } players_iterate_alive_end;
 
       fc_assert_ret_val(0 < players, base_cost);
@@ -1030,7 +1036,7 @@ int research_total_bulbs_required(const struct research *presearch,
     } else {
       total_cost += base_cost;
     }
-  } research_players_iterate_end;
+  } research_players_iterate_end(pplayer);
   base_cost = total_cost / members;
 
   base_cost *= (double) game.info.sciencebox / 100.0;
@@ -1063,7 +1069,7 @@ int player_tech_upkeep(const struct player *pplayer)
                                  ? contributor->ai_common.science_cost / 100.0
                                  : 1));
     members++;
-  } research_players_iterate_end;
+  } research_players_iterate_end(contributor);
   if (0 == members) {
     /* No player still alive. */
     return 0;

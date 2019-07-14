@@ -2458,7 +2458,8 @@ void handle_research_info(const struct packet_research_info *packet)
   struct research *presearch;
   bool tech_changed = FALSE;
   bool poptechup = FALSE;
-  Tech_type_id gained_techs[advance_count()];
+  //Tech_type_id gained_techs[advance_count()];
+  Tech_type_id *gained_techs = hh_malloc(sizeof(Tech_type_id)*advance_count());
   int gained_techs_num = 0, i;
   enum tech_state newstate, oldstate;
 
@@ -2528,9 +2529,10 @@ void handle_research_info(const struct packet_research_info *packet)
       research_players_iterate(presearch, pplayer) {
         editgui_notify_object_changed(OBJTYPE_PLAYER, player_number(pplayer),
                                       FALSE);
-      } research_players_iterate_end;
+      } research_players_iterate_end(pplayer);
     }
   }
+  free(gained_techs);
 }
 
 /************************************************************************//**

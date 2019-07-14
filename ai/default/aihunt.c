@@ -383,7 +383,7 @@ static void dai_hunter_try_launch(struct ai_type *ait,
         break; /* try next missile, if any */
       }
     } /* if */
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(missile);
 }
 
 /**********************************************************************//**
@@ -597,7 +597,7 @@ int dai_hunter_manage(struct ai_type *ait, struct player *pplayer,
       pf_map_destroy(pfm);
       unit_data->done = TRUE;
       return stackthreat; /* still have work to do */
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(target);
   } pf_map_move_costs_iterate_end;
 
   UNIT_LOG(LOGLEVEL_HUNT, punit, "ran out of map finding hunt target");

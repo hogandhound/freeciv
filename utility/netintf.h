@@ -18,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <freeciv_config.h>
+#include <freeciv_config.h.in>
 
 /***********************************************************************
   Common network interface.
@@ -50,6 +50,8 @@ extern "C" {
 #include "ioz.h"
 #include "net_types.h"
 #include "support.h"   /* bool type */
+
+#include "fc_prehdrs.h"
 
 #ifdef FD_ZERO
 #define FC_FD_ZERO FD_ZERO
@@ -107,7 +109,7 @@ int find_next_free_port(int starting_port, int highest_port,
                         char *net_interface, bool not_avail_ok);
 
 void sockaddr_debug(union fc_sockaddr *addr, enum log_level lvl);
-int sockaddr_size(union fc_sockaddr *addr);
+int fc_sockaddr_size(union fc_sockaddr *addr);
 bool sockaddr_ipv6(union fc_sockaddr *addr);
 
 #ifdef __cplusplus

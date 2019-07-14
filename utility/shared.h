@@ -17,7 +17,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <freeciv_config.h>
+#include <freeciv_config.h.in>
 
 #include <stdlib.h>		/* size_t */
 #include <string.h>		/* memset */

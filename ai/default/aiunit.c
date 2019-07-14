@@ -2748,7 +2748,7 @@ void dai_manage_units(struct ai_type *ait, struct player *pplayer)
        * the transporter is responsible for managing its passengers. */
       dai_manage_unit(ait, pplayer, punit);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /**********************************************************************//**

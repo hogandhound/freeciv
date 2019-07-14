@@ -33,6 +33,7 @@
 
 /* common */
 #include "game.h"
+#include "events.h"
 
 /* server */
 #include "notify.h"

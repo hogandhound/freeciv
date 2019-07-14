@@ -514,7 +514,7 @@ static void dai_spend_gold(struct ai_type *ait, struct player *pplayer)
                  unit_rule_name(punit));
         unit_do_disband_trad(pplayer, punit, ACT_REQ_PLAYER);
       }
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(punit);
   } city_list_iterate_end;
 
   dai_calc_data(pplayer, NULL, &expenses, NULL);
@@ -843,7 +843,8 @@ void dai_manage_cities(struct ai_type *ait, struct player *pplayer)
   if (pplayer->economic.tax >= 30 /* Otherwise expect it to increase tax */
       && player_get_expected_income(pplayer) < -(pplayer->economic.gold)) {
     int count = city_list_size(pplayer->cities);
-    struct city *sellers[count + 1];
+    //struct city *sellers[count + 1];
+    struct city **sellers = hh_malloc(sizeof(struct city) * (count + 1));
     int i;
 
     /* Randomized order */
@@ -865,6 +866,7 @@ void dai_manage_cities(struct ai_type *ait, struct player *pplayer)
            && i < count) {
       dai_city_sell_noncritical(sellers[i++], FALSE);
     }
+    free(sellers);
   }
   TIMING_LOG(AIT_EMERGENCY, TIMER_STOP);
 
@@ -1059,7 +1061,7 @@ static void resolve_city_emergency(struct ai_type *ait, struct player *pplayer,
       unit_do_disband_trad(pplayer, punit, ACT_REQ_PLAYER);
       city_refresh(pcity);
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 
   if (CITY_EMERGENCY(pcity)) {
     log_base(LOG_EMERGENCY, "Emergency in %s remains unresolved",

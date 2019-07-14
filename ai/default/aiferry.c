@@ -621,7 +621,7 @@ static void dai_activate_passengers(struct ai_type *ait, struct unit *ferry)
         dai_manage_unit(ait, ferry_owner, aunit);
       }
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(aunit);
 }
 
 /**********************************************************************//**

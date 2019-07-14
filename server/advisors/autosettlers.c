@@ -1186,7 +1186,7 @@ void auto_settlers_player(struct player *pplayer)
         }
       }
     }
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
   /* Reset auto settler state for the next run. */
   if (is_ai(pplayer)) {
     CALL_PLR_AI_FUNC(settler_reset, pplayer, pplayer);

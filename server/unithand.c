@@ -1312,7 +1312,8 @@ static void explain_why_no_action_enabled(struct unit *punit,
     break;
   case ANEK_BAD_TERRAIN_ACT:
     {
-      const char *types[utype_count()];
+      //const char *types[utype_count()];
+      const char **types = hh_calloc(utype_count(), sizeof(char*));
       int i = 0;
 
       if (!utype_can_do_act_when_ustate(unit_type_get(punit),
@@ -1344,6 +1345,7 @@ static void explain_why_no_action_enabled(struct unit *punit,
                       _("Unit cannot act from %s."),
                       terrain_name_translation(explnat->no_act_terrain));
       }
+      free(types);
     }
     break;
   case ANEK_BAD_TERRAIN_TGT:
@@ -1819,7 +1821,8 @@ void illegal_action_msg(struct player *pplayer,
     break;
   case ANEK_BAD_TERRAIN_ACT:
     {
-      const char *types[utype_count()];
+      //const char *types[utype_count()];
+      const char **types = hh_calloc(utype_count(), sizeof(char*));
       int i = 0;
 
       if (!utype_can_do_act_when_ustate(unit_type_get(actor),
@@ -1856,6 +1859,7 @@ void illegal_action_msg(struct player *pplayer,
                       action_id_name_translation(stopped_action),
                       terrain_name_translation(explnat->no_act_terrain));
       }
+      free(types);
     }
     break;
   case ANEK_BAD_TERRAIN_TGT:
@@ -3380,7 +3384,7 @@ static bool unit_bombard(struct unit *punit, struct tile *ptile,
                                  unit_link(pdefender));
     }
 
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(pdefender);
 
   punit->moves_left = 0;
 
@@ -4577,7 +4581,7 @@ static void unit_activity_dependencies(struct unit *punit,
                 }
               } extra_deps_iterate_end;
             }
-          } unit_list_iterate_safe_end;
+          } unit_list_iterate_safe_end(punit2);
         }
         break;
       }

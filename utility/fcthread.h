@@ -19,7 +19,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* gen_headers */
-#include "freeciv_config.h"
+#include "freeciv_config.h.in"
 
 /* utility */
 #include "support.h" /* bool */

@@ -1367,7 +1367,8 @@ bool req_text_insert(char *buf, size_t bufsz, struct player *pplayer,
 
   case VUT_UCFLAG:
     {
-      const char *classes[uclass_count()];
+      //const char *classes[uclass_count()];
+      const char **classes = calloc(uclass_count(),sizeof(char*));
       int i = 0;
       bool done = FALSE;
       struct astring list = ASTRING_INIT;

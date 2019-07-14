@@ -379,10 +379,12 @@ char *fc_utf8_validate_rep_len(char *utf8_string, size_t byte_len)
   fc_assert_ret_val(NULL != utf8_string, NULL);
 
   if (0 < byte_len) {
-    char copy[byte_len];
+    //char copy[byte_len];
+	  char *copy = hh_calloc(byte_len, sizeof(char));
 
     fc_strlcpy(copy, utf8_string, byte_len);
     base_fc_utf8_strlcpy_rep(utf8_string, copy, byte_len);
+	free(copy);
   }
   return utf8_string;
 }

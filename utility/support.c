@@ -105,6 +105,8 @@
 #include "mem.h"
 #include "netintf.h"
 
+#include "dirent.h"
+
 #include "support.h"
 
 static int icu_buffer_uchars = 0;
@@ -1248,12 +1250,32 @@ char fc_tolower(char c)
 const char *fc_basename(const char *path)
 {
   static char buf[2048];
+  char* ret, *curr;
+  int i, last;
 
   /* Copy const parameter string to buffer that basename() can
    * modify */
   fc_strlcpy(buf, path, sizeof(buf));
+  i = strlen(buf);
+  ret = malloc(i + 1);
 
-  return basename(buf);
+  while (--i >= 0)
+  {
+      if (!last && (buf[i] != '/' && buf[i] != '\\'))
+      {
+          last = i;
+      }
+      if (last)
+      {
+          if (buf[i] != '/' && buf[i] != '\\')
+              break;
+      }
+  }
+  ret = fc_malloc(last - i + 1);
+  fc_strlcpy(ret, &buf[i], last - i);
+
+  return ret;
+  //return basename(buf);
 }
 
 /************************************************************************//**

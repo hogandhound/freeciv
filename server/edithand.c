@@ -132,7 +132,7 @@ void edithand_send_initial_packets(struct conn_list *dest)
         send_packet_edit_startpos_full(pconn, &startpos_full);
       }
     } conn_list_iterate_end;
-  } map_startpos_iterate_end;
+  } map_startpos_iterate_end(psp);
 }
 
 /************************************************************************//**
@@ -533,7 +533,7 @@ void handle_edit_unit_remove(struct connection *pc, int owner,
     }
     wipe_unit(punit, ULR_EDITOR, NULL);
     i++;
-  } unit_list_iterate_safe_end;
+  } unit_list_iterate_safe_end(punit);
 }
 
 /************************************************************************//**

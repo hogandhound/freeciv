@@ -693,7 +693,7 @@ bool sanity_check_ruleset_data(bool ignore_retired)
                         advance_rule_name(preq));
           ok = FALSE;
         }
-      } advance_req_iterate_end;
+      } advance_req_iterate_end(preqreq);
     }
 
     requirement_vector_iterate(&(padvance->research_reqs), preq) {
@@ -810,7 +810,7 @@ bool sanity_check_ruleset_data(bool ignore_retired)
                     nation_rule_name(pnation));
       ok = FALSE;
     }
-  } nations_iterate_end;
+  } nations_iterate_end(pnation);
 
   /* Check against unit upgrade loops */
   num_utypes = game.control.num_unit_types;
@@ -918,7 +918,7 @@ bool sanity_check_ruleset_data(bool ignore_retired)
                     "Governments have conflicting or invalid requirements!");
       ok = FALSE;
     }
-  } governments_iterate_end;
+  } governments_iterate_end(pgov);
 
   /* Specialists */
   specialist_type_iterate(sp) {

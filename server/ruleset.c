@@ -867,7 +867,8 @@ static char *lookup_string(struct section_file *file, const char *prefix,
   const char *sval = secfile_lookup_str(file, "%s.%s", prefix, suffix);
 
   if (NULL != sval) {
-    char copy[strlen(sval) + 1];
+    //char copy[strlen(sval) + 1];
+    char *copy = hh_malloc(strlen(sval) + 1);
 
     strcpy(copy, sval);
     remove_leading_trailing_spaces(copy);
@@ -3827,7 +3828,7 @@ static bool load_government_names(struct section_file *file,
         ok = FALSE;
         break;
       }
-    } governments_iterate_end;
+    } governments_iterate_end(gov);
   }
 
   section_list_destroy(sec);
@@ -3919,7 +3920,7 @@ static bool load_ruleset_governments(struct section_file *file,
                  secfile_lookup_str(file, "%s.graphic_alt", sec_name));
 
       g->helptext = lookup_strvec(file, sec_name, "helptext");
-    } governments_iterate_end;
+    } governments_iterate_end(g);
   }
 
 
@@ -3946,7 +3947,7 @@ static bool load_ruleset_governments(struct section_file *file,
         ok = FALSE;
         break;
       }
-    } governments_iterate_end;
+    } governments_iterate_end(g);
   }
 
   section_list_destroy(sec);
@@ -4206,7 +4207,7 @@ static bool load_nation_names(struct section_file *file,
       if (!ok) {
         break;
       }
-    } nations_iterate_end;
+    } nations_iterate_end(pl);
   }
 
   section_list_destroy(sec);
@@ -4276,10 +4277,11 @@ static bool load_city_name_list(struct section_file *file,
    * of course). Our job is now to parse it. */
   for (j = 0; j < dim; j++) {
     size_t len = strlen(cities[j]);
-    char city_name[len + 1], *p, *next, *end;
+    char *p, *next, *end; //city_name[len + 1], 
+    char* city_name = hh_malloc(len + 1);
     struct nation_city *pncity;
 
-    sz_strlcpy(city_name, cities[j]);
+    fc_strlcpy(city_name, cities[j], len+1);
 
     /* Now we wish to determine values for all of the city labels. A value
      * of NCP_NONE means no preference (which is necessary so that the use
@@ -4403,6 +4405,7 @@ static bool load_city_name_list(struct section_file *file,
         p = next ? next + 1 : NULL;
       } while (NULL != p && '\0' != *p);
     }
+    free(city_name);
   }
 
   if (NULL != cities) {
@@ -5029,7 +5032,7 @@ static bool load_ruleset_nations(struct section_file *file,
       }
 
       pnation->player = NULL;
-    } nations_iterate_end;
+    } nations_iterate_end(pnation);
     section_list_destroy(sec);
     sec = NULL;
   }
@@ -5076,7 +5079,7 @@ static bool load_ruleset_nations(struct section_file *file,
             fc_assert_ret_val(FALSE, FALSE);
           }
         }
-      } nations_iterate_end;
+      } nations_iterate_end(pnation);
       if (num_playable < 1) {
         ruleset_error(LOG_ERROR,
                       "Nation set \"%s\" has no playable nations. "
@@ -5098,7 +5101,7 @@ static bool load_ruleset_nations(struct section_file *file,
         ok = FALSE;
         break;
       }
-    } nation_sets_iterate_end;
+    } nation_sets_iterate_end(pset);
   }
 
   return ok;
@@ -7743,8 +7746,8 @@ static void send_ruleset_governments(struct conn_list *dest)
       sz_strlcpy(title.female_title,
                  ruler_title_female_untranslated_name(pruler_title));
       lsend_packet_ruleset_government_ruler_title(dest, &title);
-    } ruler_titles_iterate_end;
-  } governments_iterate_end;
+    } ruler_titles_iterate_end(pruler_title);
+  } governments_iterate_end(g);
 }
 
 /**********************************************************************//**
@@ -7765,7 +7768,7 @@ static void send_ruleset_nations(struct conn_list *dest)
     sz_strlcpy(sets_packet.rule_names[i], nation_set_rule_name(pset));
     sz_strlcpy(sets_packet.descriptions[i], nation_set_description(pset));
     i++;
-  } nation_sets_iterate_end;
+  } nation_sets_iterate_end(pset);
   lsend_packet_ruleset_nation_sets(dest, &sets_packet);
 
   groups_packet.ngroups = nation_group_count();
@@ -7775,7 +7778,7 @@ static void send_ruleset_nations(struct conn_list *dest)
                nation_group_untranslated_name(pgroup));
     groups_packet.hidden[i] = pgroup->hidden;
     i++;
-  } nation_groups_iterate_end;
+  } nation_groups_iterate_end(pgroup);
   lsend_packet_ruleset_nation_groups(dest, &groups_packet);
 
   nations_iterate(n) {
@@ -7851,7 +7854,7 @@ static void send_ruleset_nations(struct conn_list *dest)
     packet.init_buildings_count = i;
 
     lsend_packet_ruleset_nation(dest, &packet);
-  } nations_iterate_end;
+  } nations_iterate_end(n);
 
   /* Send initial values of is_pickable */
   send_nation_availability(dest, FALSE);

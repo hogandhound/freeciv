@@ -227,7 +227,7 @@ void techs_precalc_data(void)
     advance_req_iterate(padvance, preq) {
       (void) preq; /* Compiler wants us to do something with 'preq'. */
       num_reqs++;
-    } advance_req_iterate_end;
+    } advance_req_iterate_end(preq);
     padvance->num_reqs = num_reqs;
 
     switch (game.info.tech_cost_style) {

@@ -126,7 +126,7 @@ struct iterator *government_iter_init(struct government_iter *it);
 
 #define governments_re_active_iterate_end                               \
     }                                                                   \
-  } governments_iterate_end;
+  } governments_iterate_end(pgov);
 
 #ifdef __cplusplus
 }

@@ -236,12 +236,13 @@ static void historian_generic(struct history_report *report,
                               enum historian_type which_news)
 {
   int i, j = 0, rank = 0;
-  struct player_score_entry size[player_count()];
+  //struct player_score_entry size[player_count()];
+  struct player_score_entry *size = hh_calloc(player_count(), sizeof(struct player_score_entry));
 
   report->turn = game.info.turn;
   players_iterate(pplayer) {
     if (GOOD_PLAYER(pplayer)) {
-      switch (which_news) {
+      switch(which_news) {
       case HISTORIAN_RICHEST:
 	size[j].value = pplayer->economic.gold;
 	break;
@@ -254,9 +255,8 @@ static void historian_generic(struct history_report *report,
 	break;
       case HISTORIAN_HAPPIEST: 
 	size[j].value =
-            (((pplayer->score.happy - pplayer->score.unhappy
-               - 2 * pplayer->score.angry) * 1000) /
-             (1 + total_player_citizens(pplayer)));
+	    (((pplayer->score.happy - pplayer->score.unhappy) * 1000) /
+	     (1 + total_player_citizens(pplayer)));
 	break;
       case HISTORIAN_LARGEST:
 	size[j].value = total_player_citizens(pplayer);
@@ -287,6 +287,7 @@ static void historian_generic(struct history_report *report,
   fc_snprintf(report->title, REPORT_TITLESIZE, _(historian_message[which_news]),
               calendar_text(),
               _(historian_name[fc_rand(ARRAY_SIZE(historian_name))]));
+  free(size);
 }
 
 /**********************************************************************//**
@@ -318,12 +319,13 @@ static int nr_wonders(struct city *pcity)
   return result;
 }
 
-/**********************************************************************//**
+#define NUM_BEST_CITIES 5
+/**************************************************************************
   Send report listing the "best" 5 cities in the world.
 **************************************************************************/
 void report_top_five_cities(struct conn_list *dest)
 {
-  const int NUM_BEST_CITIES = 5;
+  //static const int NUM_BEST_CITIES = 5;
   /* a wonder equals WONDER_FACTOR citizen */
   const int WONDER_FACTOR = 5;
   struct city_score_entry size[NUM_BEST_CITIES];
@@ -1564,7 +1566,8 @@ void report_final_scores(struct conn_list *dest)
   const size_t score_categories_num = ARRAY_SIZE(score_categories);
 
   int i, j;
-  struct player_score_entry size[player_count()];
+  //struct player_score_entry size[player_count()];
+  struct player_score_entry *size = hh_calloc(player_count(), sizeof(struct player_score_entry));
   struct packet_endgame_report packet;
 
   fc_assert(score_categories_num <= ARRAY_SIZE(packet.category_name));
@@ -1608,6 +1611,7 @@ void report_final_scores(struct conn_list *dest)
 
     lsend_packet_endgame_player(dest, &ppacket);
   }
+  free(size);
 }
 
 /**********************************************************************//**

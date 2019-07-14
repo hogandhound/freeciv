@@ -128,7 +128,7 @@ void *genhash_iter_value(const struct iterator *genhash_iter);
 #define genhash_iterate(ARG_ht, NAME_iter)                                  \
   generic_iterate(struct genhash_iter, struct iterator *, NAME_iter,        \
                   genhash_iter_sizeof, genhash_iter_init, (ARG_ht))
-#define genhash_iterate_end generic_iterate_end
+#define genhash_iterate_end(NAME_iter) generic_iterate_end(NAME_iter)
 
 #ifdef __cplusplus
 }

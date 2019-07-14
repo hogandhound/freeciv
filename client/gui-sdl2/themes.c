@@ -14,18 +14,15 @@
 #include <fc_config.h>
 #endif
 
-#ifdef FREECIV_HAVE_DIRENT_H
 #include <dirent.h>
-#endif
-
 #include <sys/stat.h>
 
 /* utility */
-#include "fc_dirent.h"
 #include "fcintl.h"
 #include "log.h"
 #include "mem.h"
 #include "string_vector.h"
+#include "dirent.h"
 
 /* client/gui-sdl2 */
 #include "themespec.h"
@@ -33,13 +30,16 @@
 #include "themes_common.h"
 #include "themes_g.h"
 
-/*************************************************************************//**
+/*****************************************************************************
   Loads a gui-sdl2 theme directory/theme_name
 *****************************************************************************/
 void gui_load_theme(const char *directory, const char *theme_name)
 {
-  char buf[strlen(directory) + strlen(DIR_SEPARATOR) + strlen(theme_name)
-           + strlen(DIR_SEPARATOR "theme") + 1];
+  /*char buf[strlen(directory) + strlen(DIR_SEPARATOR) + strlen(theme_name)
+           + strlen(DIR_SEPARATOR "theme") + 1];*/
+  size_t bufLen = strlen(directory) + strlen(DIR_SEPARATOR) + strlen(theme_name)
+        + strlen(DIR_SEPARATOR "theme") + 1;
+  char *buf = hh_malloc(bufLen);
 
   if (theme != NULL) {
     /* We don't support changing theme once it has been loaded */
@@ -50,10 +50,11 @@ void gui_load_theme(const char *directory, const char *theme_name)
   theme_free(theme);
   theme = NULL;
 
-  fc_snprintf(buf, sizeof(buf), "%s" DIR_SEPARATOR "%s" DIR_SEPARATOR "theme",
+  fc_snprintf(buf, bufLen, "%s" DIR_SEPARATOR "%s" DIR_SEPARATOR "theme",
               directory, theme_name);
 
   themespec_try_read(buf);
+  free(buf);
   theme_load_sprites(theme);
 }
 
@@ -84,9 +85,11 @@ char **get_gui_specific_themes_directories(int *count)
 
   *count = strvec_size(data_dirs);
   strvec_iterate(data_dirs, data_dir) {
-    char buf[strlen(data_dir) + strlen("/themes/gui-sdl2") + 1];
+    //char buf[strlen(data_dir) + strlen("/themes/gui-sdl2") + 1];
+      size_t bufLen = strlen(data_dir) + strlen("/themes/gui-sdl2") + 1;
+    char *buf = hh_malloc(bufLen);
 
-    fc_snprintf(buf, sizeof(buf), "%s/themes/gui-sdl2", data_dir);
+    fc_snprintf(buf, bufLen, "%s/themes/gui-sdl2", data_dir);
 
     directories[i++] = fc_strdup(buf);
   } strvec_iterate_end;
@@ -117,16 +120,25 @@ char **get_useable_themes_in_directory(const char *directory, int *count)
   }
 
   while ((entry = readdir(dir))) {
-    char buf[strlen(directory) + strlen(entry->d_name) + 32];
+    //char buf[strlen(directory) + strlen(entry->d_name) + 32];
+    size_t bufLen = strlen(directory) + strlen(entry->d_name) + 32;
+    char *buf = hh_malloc(bufLen);
     struct stat stat_result;
 
-    fc_snprintf(buf, sizeof(buf),
-		"%s/%s/theme.themespec", directory, entry->d_name);
+#if WIN32_NATIVE
+    fc_snprintf(buf, bufLen,
+		"%s\\%s\\theme.themespec", directory, entry->d_name);
+#else
+    fc_snprintf(buf, bufLen,
+        "%s/%s/theme.themespec", directory, entry->d_name);
+#endif
 
     if (fc_stat(buf, &stat_result) != 0) {
       /* File doesn't exist */
+      free(buf);
       continue;
     }
+    free(buf);
 
     if (!S_ISREG(stat_result.st_mode)) {
       /* Not a regular file */

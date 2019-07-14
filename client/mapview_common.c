@@ -1590,7 +1590,8 @@ static void draw_trade_route_line(const struct tile *ptile1,
                                   const struct tile *ptile2,
                                   enum color_std color)
 {
-  struct trade_route_line lines[MAX_TRADE_ROUTE_DRAW_LINES];
+  //struct trade_route_line lines[MAX_TRADE_ROUTE_DRAW_LINES];
+  struct trade_route_line *lines = hh_malloc(sizeof(struct trade_route_line) * MAX_TRADE_ROUTE_DRAW_LINES);
   int line_count, i;
   struct color *pcolor;
 
@@ -1622,6 +1623,7 @@ static void draw_trade_route_line(const struct tile *ptile1,
                     lines[i].y + tileset_tile_height(tileset) / 2 * map_zoom,
                     lines[i].width, lines[i].height);
   }
+  free(lines);
 }
 
 /************************************************************************//**

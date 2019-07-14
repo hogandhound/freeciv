@@ -397,8 +397,10 @@ static void compat_load_020400(struct loaddata *loading,
       const int maxslots = 128, maxmapsize = 512;
       const int lines = maxslots/32;
       int xsize = 0, y, l, j, x;
-      unsigned int known_row_old[lines * maxmapsize],
-                   known_row[lines * maxmapsize];
+      //unsigned int known_row_old[lines * maxmapsize],
+      //             known_row[lines * maxmapsize];
+      unsigned int *known_row_old = hh_calloc(lines * maxmapsize, sizeof(int)),
+          *known_row = hh_calloc(lines * maxmapsize,sizeof(int));
       /* Process a map row at a time */
       for (y = 0; y < maxmapsize; y++) {
         /* Look for broken info to convert */
@@ -441,13 +443,14 @@ static void compat_load_020400(struct loaddata *loading,
               }
             }
           }
+          char* row = hh_malloc(xsize + 1);
           /* Save sane format back to memory representation of secfile for
            * real loading code to pick up */
           for (l = 0; l < lines; l++) {
             for (j = 0; j < 8; j++) {
               /* Save info for all slots (not just used ones). It's only
                * memory, after all. */
-              char row[xsize+1];
+              //char row[xsize+1];
               for (x = 0; x < xsize; x++) {
                 row[x] = bin2ascii_hex(known_row[l * xsize + x], j);
               }
@@ -456,8 +459,11 @@ static void compat_load_020400(struct loaddata *loading,
                                   "map.k%02d_%04d", l * 8 + j, y);
             }
           }
+          free(row);
         }
       }
+      free(known_row);
+      free(known_row_old);
     }
   }
 
@@ -1015,19 +1021,21 @@ static void compat_load_020600(struct loaddata *loading,
                                        "player%d.u%d.orders_length",
                                        plrno, i);
       if (len > 0) {
-        char orders_str[len + 1];
+        //char orders_str[len + 1];
+        char *orders_str = hh_malloc(len + 1);
         char *p;
 
-        sz_strlcpy(orders_str,
+        fc_strlcpy(orders_str,
                    secfile_lookup_str_default(loading->file, "",
                                               "player%d.u%d.orders_list",
-                                              plrno, i));
+                                              plrno, i), len+1);
         if ((p = strrchr(orders_str, 'm'))
             || (p = strrchr(orders_str, 'M'))) {
           *p = 'x'; /* ORDER_MOVE -> ORDER_ACTION_MOVE */
           secfile_replace_str(loading->file, orders_str,
                               "player%d.u%d.orders_list", plrno, i);
         }
+        free(orders_str);
       }
     }
   } player_slots_iterate_end;
@@ -1101,7 +1109,8 @@ static void compat_load_020600(struct loaddata *loading,
       { "done", ENTRY_STR }
     };
 
-    int researches[MAX(player_slot_count(), team_slot_count())];
+    //int researches[MAX(player_slot_count(), team_slot_count())];
+    int *researches = hh_calloc(MAX(player_slot_count(), team_slot_count()),sizeof(int));
     int count = 0;
     int i;
 
@@ -1178,6 +1187,7 @@ static void compat_load_020600(struct loaddata *loading,
       }
     } player_slots_iterate_end;
     secfile_insert_int(loading->file, count, "research.count");
+    free(researches);
   }
 
   /* Add diplstate type order. */

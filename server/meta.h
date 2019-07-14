@@ -13,9 +13,13 @@
 #ifndef FC__META_H
 #define FC__META_H
 
-#include "freeciv_config.h"
+#include "freeciv_config.h.in"
 
 #include "support.h"            /* bool type */
+
+#ifndef FREECIV_META_URL
+#define FREECIV_META_URL ""
+#endif
 
 #define DEFAULT_META_SERVER_NO_SEND  TRUE
 #define DEFAULT_META_SERVER_ADDR     FREECIV_META_URL

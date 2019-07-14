@@ -181,7 +181,7 @@ static bool find_option(const char *buf_in, const char *option,
       buf_in++;
     }
 
-    if (0 == strncasecmp(buf_in, option, option_len)) {
+    if (0 == fc_strncasecmp(buf_in, option, option_len)) {
       /* This is this one. */
       buf_in += option_len;
 
@@ -876,7 +876,9 @@ size_t featured_text_to_plain_text(const char *featured_text,
   while (*text_in != '\0' && text_out_len > 1) {
     if (SEQ_START == *text_in) {
       /* Escape sequence... */
-      char buf[text_out_len];
+      
+	  //char buf[text_out_len]; 
+      char *buf = (char*)hh_malloc(text_out_len);
       enum sequence_type seq_type;
       enum text_tag_type type;
       size_t len = extract_sequence_text(text_in, buf, text_out_len,
@@ -953,6 +955,7 @@ size_t featured_text_to_plain_text(const char *featured_text,
         *text_out++ = *text_in++;
         text_out_len--;
       }
+	  free(buf);
     } else {
       *text_out++ = *text_in++;
       text_out_len--;

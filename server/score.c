@@ -417,7 +417,8 @@ void rank_users(bool interrupt)
   FILE *fp;
   int i, t_winner_score = 0;
   enum victory_state { VS_NONE, VS_LOSER, VS_WINNER };
-  enum victory_state plr_state[player_slot_count()];
+  //enum victory_state plr_state[player_slot_count()];
+  enum victory_state *plr_state = 0;
   struct player *spacerace_winner = NULL;
   struct team *t_winner = NULL;
 
@@ -434,6 +435,7 @@ void rank_users(bool interrupt)
               srvarg.ranklog_filename);
     return;
   }
+  plr_state = hh_calloc(player_slot_count(), sizeof(enum victory_state));
 
   /* initialize plr_state */
   for (i = 0; i < player_slot_count(); i++) {
@@ -537,4 +539,6 @@ void rank_users(bool interrupt)
   fprintf(fp, "\n");
 
   fclose(fp);
+
+  free(plr_state);
 }

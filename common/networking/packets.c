@@ -117,7 +117,8 @@ static bool conn_compression_flush(struct connection *pconn)
   int compression_level = get_compression_level();
   uLongf compressed_size = 12 + 1.001 * pconn->compression.queue.size;
   int error;
-  Bytef compressed[compressed_size];
+  //Bytef compressed[compressed_size];
+  Bytef *compressed = calloc(compressed_size,sizeof(Bytef));
   bool jumbo;
   unsigned long compressed_packet_len;
 

@@ -1017,7 +1017,8 @@ struct strvec *fileinfolist(const struct strvec *dirs, const char *suffix)
 const char *fileinfoname(const struct strvec *dirs, const char *filename)
 {
 #ifndef DIR_SEPARATOR_IS_DEFAULT
-  char fnbuf[filename != NULL ? strlen(filename) + 1 : 1];
+  //char fnbuf[filename != NULL ? strlen(filename) + 1 : 1];
+  char *fnbuf = hh_malloc(filename != NULL ? strlen(filename) + 1 : 1);
   int i;
 #else  /* DIR_SEPARATOR_IS_DEFAULT */
   const char *fnbuf = filename;
@@ -1065,6 +1066,7 @@ const char *fileinfoname(const struct strvec *dirs, const char *filename)
 
   log_verbose("Could not find readable file \"%s\" in data path.", filename);
 
+  free(fnbuf);
   return NULL;
 }
 

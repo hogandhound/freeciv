@@ -985,7 +985,8 @@ void dai_diplomacy_begin_new_phase(struct ai_type *ait, struct player *pplayer)
 {
   struct ai_plr *ai = dai_plr_data_get(ait, pplayer, NULL);
   struct adv_data *adv = adv_data_get(pplayer, NULL);
-  int war_desire[player_slot_count()];
+  //int war_desire[player_slot_count()];
+  int *war_desire;
   int best_desire = 0;
   struct player *best_target = NULL;
 
@@ -995,7 +996,8 @@ void dai_diplomacy_begin_new_phase(struct ai_type *ait, struct player *pplayer)
     return; /* duh */
   }
 
-  memset(war_desire, 0, sizeof(war_desire));
+  war_desire = hh_calloc(player_slot_count(), sizeof(int));
+  //memset(war_desire, 0, sizeof(war_desire));
 
   /* Calculate our desires, and find desired war target */
   players_iterate_alive(aplayer) {
@@ -1011,6 +1013,7 @@ void dai_diplomacy_begin_new_phase(struct ai_type *ait, struct player *pplayer)
       best_target = aplayer;
     }
   } players_iterate_alive_end;
+  free(war_desire);
 
   /* Time to make love. If we've been wronged, hold off that love
    * for a while. Also, cool our head each turn with love_coeff. */
@@ -1126,7 +1129,8 @@ static void suggest_tech_exchange(struct ai_type *ait,
 {
   struct research *presearch1 = research_get(player1);
   struct research *presearch2 = research_get(player2);
-  int worth[advance_count()];
+  //int worth[advance_count()];
+  int *worth = hh_calloc(advance_count(),sizeof(int));
   bool is_dangerous;
     
   worth[A_NONE] = 0;
@@ -1187,6 +1191,7 @@ static void suggest_tech_exchange(struct ai_type *ait,
       }
     } advance_index_iterate_end;
   } advance_index_iterate_end;
+  free(worth);
 }
 
 /******************************************************************//**

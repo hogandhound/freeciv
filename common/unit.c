@@ -1640,7 +1640,7 @@ void unit_virtual_destroy(struct unit *punit)
     /* Unload all units. */
     unit_list_iterate_safe(punit->transporting, pcargo) {
       unit_transport_unload(pcargo);
-    } unit_list_iterate_safe_end;
+    } unit_list_iterate_safe_end(pcargo);
   }
   fc_assert(unit_list_size(punit->transporting) == 0);
 
@@ -2274,7 +2274,7 @@ bool unit_transport_check(const struct unit *pcargo,
         return FALSE;
       }
     } unit_transports_iterate_end;
-  } unit_cargo_iterate_end;
+  } unit_cargo_iterate_end(pchild);
 
   return TRUE;
 }

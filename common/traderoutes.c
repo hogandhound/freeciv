@@ -388,7 +388,8 @@ static int max_tile_trade(const struct city *pcity)
 {
   int i, total = 0;
   int radius_sq = city_map_radius_sq_get(pcity);
-  int tile_trade[city_map_tiles(radius_sq)];
+  //int tile_trade[city_map_tiles(radius_sq)];
+  int *tile_trade = hh_calloc(city_map_tiles(radius_sq),sizeof(int));
   size_t size = 0;
   bool is_celebrating = base_city_celebrating(pcity);
 
@@ -422,6 +423,7 @@ static int max_tile_trade(const struct city *pcity)
     total += tile_trade[i];
   }
 
+  free(tile_trade);
   return total;
 }
 
